@@ -3,11 +3,11 @@
 import { Command } from 'commander'
 import 'colors'
 import prompts from 'prompts'
+import env from '../env.json'
 
 const cli = new Command()
 
-// @FIXME: we dont have access to the env vars, when running the compiled code
-cli.version(process.env.npm_package_version || 'x.x.x')
+cli.version(env.VERSION)
 
 cli.command('hello')
     .argument('[name]', 'Your name')

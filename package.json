@@ -8,6 +8,7 @@
     },
     "scripts": {
         "prepare": "npm run build",
+        "prebuild": "node ./load-env.js",
         "build": "esbuild ./src/main.ts --outfile=./bin/index.js --bundle --platform=node --target=node16",
         "dev": "npm run build -- --watch",
         "format": "prettier --write ."
