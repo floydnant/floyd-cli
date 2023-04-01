@@ -3,11 +3,14 @@
 import { Command } from 'commander'
 import 'colors'
 import prompts from 'prompts'
+import { setupInitCommands } from './commands/init'
 import env from '../env.json'
+import { editConfig, readConfig } from './config'
 
 const cli = new Command()
 
 cli.version(env.VERSION)
+cli.showSuggestionAfterError(true)
 
 cli.command('hello')
     .argument('[name]', 'Your name')
@@ -32,6 +35,16 @@ cli.command('hello')
         result.then(res => {
             console.log(res)
         })
+    })
+
+setupInitCommands(cli)
+
+cli.command('conf')
+    .description('Shows the resolved config')
+    .option('-e, --edit', 'Opens the config file in your editor')
+    .action((opts: { edit?: boolean }) => {
+        if (opts.edit) editConfig()
+        else console.log(readConfig())
     })
 
 cli.parse(process.argv)
