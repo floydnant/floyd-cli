@@ -3,6 +3,7 @@
 import { Command } from 'commander'
 import 'colors'
 import prompts from 'prompts'
+import { setupChecksCommand } from './commands/checks'
 import { setupInitCommands } from './commands/init'
 import env from '../env.json'
 import { editConfig, readConfig } from './config'
@@ -37,6 +38,7 @@ cli.command('hello')
         })
     })
 
+setupChecksCommand(cli)
 setupInitCommands(cli)
 
 cli.command('conf')
