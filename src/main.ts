@@ -7,6 +7,7 @@ import { setupChecksCommand } from './commands/checks'
 import { setupInitCommands } from './commands/init'
 import env from '../env.json'
 import { editConfig, readConfig } from './config'
+import { setupWorktreeCommand } from './commands/worktrees'
 
 const cli = new Command()
 
@@ -40,6 +41,7 @@ cli.command('hello')
 
 setupChecksCommand(cli)
 setupInitCommands(cli)
+setupWorktreeCommand(cli)
 
 cli.command('conf')
     .description('Shows the resolved config')
