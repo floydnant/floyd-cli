@@ -15,7 +15,7 @@ export const test = (command: string) => {
 export const assertGitHubInstalled = () => {
     if (test('gh --version')) return
 
-    console.log('Please install gh cli first'.red)
+    console.log('Please install gh cli with `brew install gh`'.red)
     process.exit(1)
 }
 export const isCodeInstalled = () => test('code --version')
