@@ -5,6 +5,7 @@ export interface PR {
     number: number
     title: string
     url: string
+    headRefName: string
     statusCheckRollup: Check[]
 }
 type Conclusion = 'SUCCESS' | 'FAILURE' | 'NEUTRAL'
@@ -64,18 +65,26 @@ const viewChecks = (prNumberOrBranch: number | string | undefined) => {
         exec(`gh pr checks ${prNumberOrBranch ?? ''}`)
     } catch {}
 }
-export const getPr = (prNumberOrBranch: number | string | undefined): PR => {
+export const getPr = (prNumberOrBranch: number | string | undefined, opts?: { checks?: boolean }): PR => {
+    const fetchChecks = opts?.checks ?? true
+
     try {
         const jsonStr = execSync(
-            `gh pr view ${prNumberOrBranch ?? ''} --json number,title,url,statusCheckRollup`,
+            `gh pr view ${prNumberOrBranch ?? ''} --json number,title,url,headRefName${
+                fetchChecks ? ',statusCheckRollup' : ''
+            }`,
         ).toString()
         return JSON.parse(jsonStr)
     } catch {
         process.exit(1)
     }
 }
-export const getOpenPrs = (): PR[] => {
-    const jsonStr = execSync(`gh pr list --json number,title,url,statusCheckRollup`).toString()
+export const getOpenPrs = (opts?: { checks?: boolean }): PR[] => {
+    const fetchChecks = opts?.checks ?? true
+
+    const jsonStr = execSync(
+        `gh pr list --json number,title,url,headRefName${fetchChecks ? ',statusCheckRollup' : ''}`,
+    ).toString()
     return JSON.parse(jsonStr)
 }
 export const filterFailedChecks = (pr: PR): PR => {
