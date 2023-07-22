@@ -5,6 +5,11 @@ A cli for automating and simplifying common tasks such as
  - Scaffolding projects
  - More to come...
 
+## Installation
+1. Clone the repo
+2. Run `npm i`
+3. Run `npm i . -g` - might require `sudo` <!-- @TODO: double check wether it's the right command -->
+
 ## TODO
 - [x] git worktrees
 - [ ] http server
@@ -18,4 +23,4 @@ A cli for automating and simplifying common tasks such as
      - [ ] Opening `gh pr create` ...
      - [ ] Merging `gh pr merge --auto --squash --delete-branch <number>`
 - [ ] Create a $schema for the config file
-- [ ] Add installation instructions
+- [x] Add installation instructions
