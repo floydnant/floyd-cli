@@ -17,3 +17,5 @@ A cli for automating and simplifying common tasks such as
      - [x] Checks
      - [ ] Opening `gh pr create` ...
      - [ ] Merging `gh pr merge --auto --squash --delete-branch <number>`
+- [ ] Create a $schema for the config file
+- [ ] Add installation instructions

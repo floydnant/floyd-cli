@@ -1,88 +1,11 @@
 import { execSync } from 'child_process'
-import { Command } from 'commander'
 import prompts from 'prompts'
-import { assertGitHubInstalled, exec, getPaddedStr, indent, UnwrapArray } from '../utils'
-import {
-    PR,
-    isCheckRun,
-    getCheckTitleString,
-    CheckRun,
-    Run,
-    getPr,
-    getOpenPrs,
-    filterFailedChecks,
-} from '../github'
+import { CheckRun, PullRequest, Run } from '../../../adapters/github'
+import { exec } from '../../../utils'
+import { CheckRunChoiceValue, getCheckChoices } from './check-choices'
+import { printChecks } from './print-checks'
 
-const displayChecks = (prs: PR[]) => {
-    if (!prs.length) return console.log('No open PRs to display'.dim)
-
-    const prStrings = prs.map(pr => {
-        const prTitle = `${('#' + pr.number).magenta} ${pr.title} ${pr.url.dim}`
-
-        const checks = pr.statusCheckRollup.map(check => {
-            const url = isCheckRun(check) ? check.detailsUrl : check.targetUrl
-            return `${getCheckTitleString(check)}  ${url.dim}`
-        })
-        const checksStr = checks.length ? checks.join('\n') : 'Nothing to see here'.dim
-
-        return `${getPaddedStr(prTitle)}\n${indent(checksStr)}`
-    })
-
-    const sum = {
-        successful: 0,
-        neutral: 0,
-        failed: 0,
-        pending: 0,
-        queued: 0,
-    }
-    prs.forEach(pr => {
-        pr.statusCheckRollup.forEach(check => {
-            const isCheckRun_ = isCheckRun(check)
-            const conclusion = isCheckRun_ ? check.conclusion : check.state
-            if (conclusion == 'SUCCESS') sum.successful++
-            else if (conclusion == 'NEUTRAL') sum.neutral++
-            else if (conclusion == 'FAILURE') sum.failed++
-            else if (isCheckRun_ && check.status == 'IN_PROGRESS') sum.pending++
-            else if (isCheckRun_ && check.status == 'QUEUED') sum.queued++
-        })
-    })
-
-    const successful = `${sum.successful} successful`.green
-    const neutral = `${sum.neutral} neutral`
-    const failed = `${sum.failed} failed`.red
-    const pending = `${sum.pending} pending`.yellow
-    const queued = `${sum.queued} queued`.yellow
-
-    console.log(
-        `In ${prStrings.length} PRs, are ${successful}, ${failed}, ${neutral}, ${pending}, and ${queued} checks`,
-    )
-    console.log('\n' + prStrings.join('\n\n') + '\n')
-}
-
-const getCheckChoices = (prs: PR[]) =>
-    prs
-        .map(pr => {
-            const prTitle = `${'#' + pr.number} ${pr.title.dim}`
-            return pr.statusCheckRollup.map(check => {
-                const isCheckRun_ = isCheckRun(check)
-
-                const isCompleted = isCheckRun_ ? check.status == 'COMPLETED' : true
-
-                return {
-                    title: `${prTitle} ${getCheckTitleString(check)}`,
-                    disabled:
-                        !isCheckRun_ || !isCompleted || !/^https:\/\/github\.com/.test(check.detailsUrl),
-                    description: isCheckRun_ ? '' : 'StatusContexts cannot be rerun',
-                    value: { ...check, prTitle, prNumber: pr.number },
-                } satisfies prompts.Choice
-            })
-        })
-        .flat()
-
-type ChoiceValue = UnwrapArray<ReturnType<typeof getCheckChoices>>['value']
-type CheckRunChoiceValue = Extract<ChoiceValue, CheckRun>
-
-const rerunChecks = async (prs: PR[], refetchPrs: () => PR[]) => {
+export const rerunChecks = async (prs: PullRequest[], refetchPrs: () => PullRequest[]) => {
     const checksChoices = getCheckChoices(prs)
 
     if (!checksChoices.length) return console.log('No failed checks to rerun'.dim)
@@ -215,40 +138,5 @@ const rerunChecks = async (prs: PR[], refetchPrs: () => PR[]) => {
     }
 
     console.log('\nRefetching checks...'.dim)
-    setTimeout(() => displayChecks(refetchPrs()), 2000)
-}
-
-const checksHandler = (
-    prNumberOrBranch: number | string | undefined,
-    opts: { all?: boolean; failed?: boolean; rerun?: boolean },
-) => {
-    assertGitHubInstalled()
-
-    const getPrs = () => {
-        const prs: PR[] = []
-        if (!opts.all || prNumberOrBranch) prs.push(getPr(prNumberOrBranch))
-        else prs.push(...getOpenPrs())
-
-        return prs
-    }
-
-    const prs = opts.failed ? getPrs().map(filterFailedChecks) : getPrs()
-
-    if (opts.rerun) return rerunChecks(prs, getPrs)
-    else return displayChecks(prs)
-}
-
-export const setupChecksCommand = (cli: Command) => {
-    cli.command('checks')
-        .aliases(['ch', 'check'])
-        .description('Show checks for the current PR')
-        .argument('[prNumberOrBranch]', 'PR number or branch name')
-        .option('-a, --all', 'Show checks for all open PRs', false)
-        .option('-f, --failed', 'Show only failed checks')
-        .option('-r, --rerun', 'Select failed checks to rerun')
-        .addHelpText(
-            'after',
-            '\n  -w, --watch       Not yet supported, please use gh directly with `gh pr checks --watch -i 5`',
-        )
-        .action(checksHandler)
+    setTimeout(() => printChecks(refetchPrs()), 2000)
 }

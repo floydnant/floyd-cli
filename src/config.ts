@@ -3,6 +3,9 @@ import path from 'path'
 import defaultConfigMap from '../default-configs/index.json'
 import { exec, isCodeInstalled, isNvimInstalled } from './utils'
 import 'colors'
+import { Workflow } from './cli/workflows/run.command'
+
+// @TODO: Manage config with `configStore` package
 
 const configPath = '~/.config/.flo-cli/config.json'
 
@@ -12,6 +15,10 @@ export const doesConfigExist = () => {
 
 interface Config {
     defaultConfigMap: typeof defaultConfigMap
+}
+interface Config_ {
+    files?: Record<string, string> & typeof defaultConfigMap
+    workflows?: Workflow[]
 }
 
 const resolvedDefaultConfigMap = Object.fromEntries(
@@ -48,6 +55,8 @@ export const editConfig = () => {
     else exec(`vim ${configPath}`)
 }
 
-export const getConfigFilePath = (configName: keyof typeof defaultConfigMap) => {
+export type ConfigFile = keyof typeof defaultConfigMap
+
+export const getConfigFilePath = (configName: ConfigFile) => {
     return readConfig().defaultConfigMap[configName]
 }

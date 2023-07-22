@@ -37,7 +37,6 @@ export const openWithVscode = (directory: string, opts?: { reuse?: boolean }) =>
 export const isNvimInstalled = () => test('nvim --version')
 export const isVimInstalled = () => test('vim --version')
 
-export const getWorkingDir = () => process.cwd()
 export const isSubDir = (dir: string, parentDir: string) => {
     const relative = path.relative(parentDir, dir)
     return !!relative && !relative.startsWith('..') && !path.isAbsolute(relative)

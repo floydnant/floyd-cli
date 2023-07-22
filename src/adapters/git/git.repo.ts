@@ -1,6 +1,7 @@
 import { execSync } from 'child_process'
+import { UnwrapArray } from '../../utils'
 import path from 'path'
-import { getWorkingDir, isSubDir, UnwrapArray } from './utils'
+import { fixBranchName } from './git.util'
 
 export const getBranches = (remote?: boolean) => {
     return execSync(`git branch ${remote ? '-r' : ''} --format "%(refname:short)"`)
@@ -15,10 +16,6 @@ export const getBranchStatus = (dir?: string) =>
         .toString()
         .trim()
 
-export const fixBranchName = (branch: string) =>
-    branch.replace('refs/', '').replace('heads/', '').replace('remotes/', '').replace('origin/', '')
-
-export type Worktree = UnwrapArray<ReturnType<typeof getWorktrees>>
 export const getWorktrees = () => {
     const output = execSync('git worktree list --porcelain').toString()
     const worktrees = output
@@ -34,17 +31,6 @@ export const getWorktrees = () => {
         })
         .filter(wt => !!wt.dir)
     return worktrees
-}
-
-export const getWorktreeDisplayStr = (tree: Worktree, isDirty?: boolean) => {
-    const currentWorkingDir = getWorkingDir()
-    const isCurrentTree =
-        currentWorkingDir == tree.dir || isSubDir(currentWorkingDir, tree.dir) ? '(current) '.yellow : ''
-    const isDirtyStr = isDirty ? '(dirty) ' : ''
-
-    const branch = tree.branch.green
-    const isMainWorktree = tree.isMainWorktree ? ' (main)'.blue : ''
-    return `${branch} ${isCurrentTree}${isDirtyStr}${tree.dir.dim}${isMainWorktree}`
 }
 
 export const getWorktreeFromBranch = (branch: string, worktrees = getWorktrees()) => {
@@ -67,7 +53,7 @@ export const getCommitLogs = (dir?: string, limit?: number) => {
 export const getRepoRootDir = () => {
     const gitDir = execSync('git rev-parse --git-dir').toString().trim()
     const isAbsolute = path.isAbsolute(gitDir)
-    const joined = path.join(getWorkingDir(), gitDir)
+    const joined = path.join(process.cwd(), gitDir)
     const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
 
     return resolved

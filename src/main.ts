@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander'
 import 'colors'
+import { Command } from 'commander'
 import prompts from 'prompts'
-import { setupChecksCommand } from './commands/checks'
-import { setupInitCommands } from './commands/init'
 import env from '../env.json'
+import { checksCommand } from './cli/checks'
+import { runCommand } from './cli/workflows/run.command'
+import { worktreesCommand } from './cli/worktrees'
 import { editConfig, readConfig } from './config'
-import { setupWorktreeCommand } from './commands/worktrees'
 
 const cli = new Command()
 
@@ -39,9 +39,9 @@ cli.command('hello')
         })
     })
 
-setupChecksCommand(cli)
-setupInitCommands(cli)
-setupWorktreeCommand(cli)
+cli.addCommand(runCommand)
+cli.addCommand(worktreesCommand)
+cli.addCommand(checksCommand)
 
 cli.command('conf')
     .description('Shows the resolved config')

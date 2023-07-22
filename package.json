@@ -1,6 +1,6 @@
 {
     "name": "floyd-cli",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A cli for automating and simplifying common tasks",
     "main": "./bin/index.js",
     "bin": {
@@ -11,7 +11,8 @@
         "prebuild": "node ./load-env.js",
         "build": "esbuild ./src/main.ts --outfile=./bin/index.js --bundle --platform=node --target=node16",
         "dev": "npm run build -- --watch",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "typecheck": "tsc --noEmit"
     },
     "author": "Floyd Haremsa",
     "license": "ISC",
