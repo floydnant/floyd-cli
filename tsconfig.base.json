@@ -11,7 +11,7 @@
         "strictNullChecks": true,
         "skipLibCheck": true,
         "paths": {
-            "wok-balance": ["packages/wok-balance/src/main.ts"]
+            "@flo/wok-balance": ["packages/wok-balance/src/index.ts"]
         }
     }
 }

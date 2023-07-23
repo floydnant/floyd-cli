@@ -1,6 +1,7 @@
 import { execSync } from 'child_process'
 import path from 'path'
 import { fixBranchName } from './git.util'
+import { Worktree } from './git.model'
 
 export const getBranches = (remote?: boolean) => {
     return execSync(`git branch ${remote ? '-r' : ''} --format "%(refname:short)"`)
@@ -15,12 +16,12 @@ export const getBranchStatus = (dir?: string) =>
         .toString()
         .trim()
 
-export const getWorktrees = () => {
+export const getWorktrees = (): Worktree[] => {
     const output = execSync('git worktree list --porcelain').toString()
     const worktrees = output
         .split('\n\n')
-        .map(block => {
-            const dir = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '')
+        .map<Worktree>(block => {
+            const dir = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '') || '<none>'
             const branch = block.match(/^branch .+/m)?.[0].replace('branch ', '')
 
             return {

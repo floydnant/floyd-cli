@@ -1,0 +1,75 @@
+import { z } from 'zod'
+
+export const timeEntrySchema = z.object({
+    id: z.number(),
+    spent_date: z.string(),
+    hours: z.number(),
+    hours_without_timer: z.number(),
+    rounded_hours: z.number(),
+    notes: z.string(),
+    is_locked: z.boolean(),
+    locked_reason: z.string(),
+    is_closed: z.boolean(),
+    is_billed: z.boolean(),
+    timer_started_at: z.null(),
+    started_time: z.string(),
+    ended_time: z.string(),
+    is_running: z.boolean(),
+    billable: z.boolean(),
+    budgeted: z.boolean(),
+    billable_rate: z.null(),
+    cost_rate: z.null(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    user: z.object({ id: z.number(), name: z.string() }),
+    client: z.object({
+        id: z.number(),
+        name: z.string(),
+        currency: z.string(),
+    }),
+    project: z.object({
+        id: z.number(),
+        name: z.string(),
+        code: z.string(),
+    }),
+    task: z.object({ id: z.number(), name: z.string() }),
+    user_assignment: z.object({
+        id: z.number(),
+        is_project_manager: z.boolean(),
+        is_active: z.boolean(),
+        use_default_rates: z.boolean(),
+        budget: z.null(),
+        created_at: z.string().datetime(),
+        updated_at: z.string().datetime(),
+        hourly_rate: z.null(),
+    }),
+    task_assignment: z.object({
+        id: z.number(),
+        billable: z.boolean(),
+        is_active: z.boolean(),
+        created_at: z.string().datetime(),
+        updated_at: z.string().datetime(),
+        hourly_rate: z.null(),
+        budget: z.null(),
+    }),
+    invoice: z.null(),
+    external_reference: z.null(),
+})
+export type TimeEntry = z.infer<typeof timeEntrySchema>
+
+export const timeEntriesResponseSchema = z.object({
+    per_page: z.number(),
+    total_pages: z.number(),
+    total_entries: z.number(),
+    next_page: z.null(),
+    previous_page: z.null(),
+    page: z.number(),
+    time_entries: z.array(timeEntrySchema),
+    links: z.object({
+        first: z.string().url(),
+        next: z.null(),
+        previous: z.null(),
+        last: z.string().url(),
+    }),
+})
+export type TimeEntriesResponse = z.infer<typeof timeEntriesResponseSchema>
