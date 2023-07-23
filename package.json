@@ -1,5 +1,5 @@
 {
-    "name": "floyd-cli",
+    "name": "floyd-cli-root",
     "version": "1.1.0",
     "description": "A cli for automating and simplifying common tasks",
     "main": "./bin/index.js",
@@ -9,9 +9,10 @@
     "scripts": {
         "prepare": "npm run build",
         "build": "nx build flo-cli",
-        "dev": "nx build flo-cli --watch",
-        "format": "nx run-many --target=lint",
-        "typecheck": "tsc --noEmit"
+        "build:all": "nx run-many --target=build",
+        "test:all": "nx run-many --target=test",
+        "lint:all": "nx run-many --target=lint",
+        "dev": "nx build flo-cli --watch"
     },
     "author": "Floyd Haremsa",
     "license": "ISC",

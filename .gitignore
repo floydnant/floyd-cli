@@ -2,5 +2,7 @@
 node_modules
 .DS_Store
 bin
+dist
+tmp
 env.json
 testdir

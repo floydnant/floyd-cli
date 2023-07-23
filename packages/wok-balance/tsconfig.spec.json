@@ -6,15 +6,14 @@
     },
     "include": [
         "vite.config.ts",
-        "src.old/**/*.test.ts",
-        "src.old/**/*.spec.ts",
-        "src.old/**/*.test.tsx",
-        "src.old/**/*.spec.tsx",
-        "src.old/**/*.test.js",
-        "src.old/**/*.spec.js",
-        "src.old/**/*.test.jsx",
-        "src.old/**/*.spec.jsx",
-        "src.old/**/*.d.ts",
-        "src/core/wok-balance.spec.ts"
+        "src/**/*.test.ts",
+        "src/**/*.spec.ts",
+        "src/**/*.test.tsx",
+        "src/**/*.spec.tsx",
+        "src/**/*.test.js",
+        "src/**/*.spec.js",
+        "src/**/*.test.jsx",
+        "src/**/*.spec.jsx",
+        "src/**/*.d.ts"
     ]
 }
