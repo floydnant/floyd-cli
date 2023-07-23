@@ -34,7 +34,7 @@
         "@nx/node": "^16.5.5",
         "@nx/vite": "16.5.5",
         "@types/jest": "^29.4.0",
-        "@types/node": "^18.15.11",
+        "@types/node": "^20.4.4",
         "@types/prompts": "^2.4.4",
         "@typescript-eslint/eslint-plugin": "^5.60.1",
         "@typescript-eslint/parser": "^5.60.1",
