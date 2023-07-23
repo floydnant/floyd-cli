@@ -1,0 +1,40 @@
+name: 'Build, Lint, Test and Dependency Review'
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v3
+      - run: npm ci
+      - name: 'build'
+        run: npx nx run-many --target=build
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v3
+      - run: npm ci
+      - name: 'Lint'
+        run: npx nx run-many --target=lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v3
+      - run: npm ci
+      - name: 'test'
+        run: npx nx run-many --target=test
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v3
+      - name: 'Dependency Review'
+        uses: actions/dependency-review-action@v3
