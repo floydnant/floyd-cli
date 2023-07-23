@@ -1,0 +1,34 @@
+{
+    "name": "wok-balance",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/wok-balance/src",
+    "projectType": "library",
+    "targets": {
+        "build": {
+            "executor": "@nx/js:tsc",
+            "outputs": ["{options.outputPath}"],
+            "options": {
+                "outputPath": "dist/wok-balance",
+                "main": "wok-balance/src/index.ts",
+                "tsConfig": "packages/wok-balance/tsconfig.lib.json",
+                "assets": ["packages/wok-balance/*.md"]
+            }
+        },
+        "lint": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/wok-balance/**/*.ts"]
+            }
+        },
+        "test": {
+            "executor": "@nx/vite:test",
+            "outputs": ["coverage/packages/wok-balance"],
+            "options": {
+                "passWithNoTests": true,
+                "reportsDirectory": "../coverage/packages/wok-balance"
+            }
+        }
+    },
+    "tags": []
+}

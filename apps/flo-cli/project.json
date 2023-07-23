@@ -1,0 +1,82 @@
+{
+    "name": "flo-cli",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/flo-cli/src",
+    "projectType": "application",
+    "targets": {
+        "build": {
+            "executor": "@nx/esbuild:esbuild",
+            "outputs": ["{options.outputPath}"],
+            "defaultConfiguration": "production",
+            "dependsOn": ["load-env"],
+            "options": {
+                "platform": "node",
+                "outputPath": "bin/index.js",
+                "format": ["cjs"],
+                "bundle": true,
+                "main": "apps/flo-cli/src/main.ts",
+                "tsConfig": "apps/flo-cli/tsconfig.app.json",
+                "assets": ["apps/flo-cli/src/assets"],
+                "generatePackageJson": false,
+                "esbuildOptions": {
+                    "sourcemap": true,
+                    "outExtension": {
+                        ".js": ".js"
+                    }
+                }
+            },
+            "configurations": {
+                "development": {},
+                "production": {
+                    "esbuildOptions": {
+                        "sourcemap": false,
+                        "outExtension": {
+                            ".js": ".js"
+                        },
+                        "outfile": "bin/index.js"
+                    }
+                }
+            }
+        },
+        "load-env": {
+            "command": "node apps/flo-cli/scripts/load-env.js"
+        },
+        "serve": {
+            "executor": "@nx/js:node",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "flo-cli:build"
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "flo-cli:build:development"
+                },
+                "production": {
+                    "buildTarget": "flo-cli:build:production"
+                }
+            }
+        },
+        "lint": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["apps/flo-cli/**/*.ts"]
+            }
+        },
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "apps/flo-cli/jest.config.ts",
+                "passWithNoTests": true
+            },
+            "configurations": {
+                "ci": {
+                    "ci": true,
+                    "codeCoverage": true
+                }
+            }
+        }
+    },
+    "tags": []
+}
