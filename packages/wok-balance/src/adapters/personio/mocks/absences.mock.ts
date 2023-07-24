@@ -73,7 +73,7 @@ export const mockAbsencesResponse = {
         current_page: 1,
         total_pages: 1,
     },
-    data: [] as (typeof mockAbsence)[],
+    data: [mockAbsence],
     offset: '0,',
     limit: '200,',
 } as const

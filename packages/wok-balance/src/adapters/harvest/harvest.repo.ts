@@ -31,7 +31,8 @@ export class HarvestRepo implements IHarvestRepo {
 
     async getTimePerTask(dateRange?: Partial<DateRange>) {
         const endpoint = '/reports/time/tasks'
-        const response = await this.axios.get<Record<string, unknown>>(endpoint)
+        const harvestDateRange = dateRange ? toHarvestDateRange(dateRange) : {}
+        const response = await this.axios.get<Record<string, unknown>>(endpoint, { params: harvestDateRange })
 
         return response.data
     }
@@ -39,9 +40,7 @@ export class HarvestRepo implements IHarvestRepo {
     async getTimeEntries(dateRange?: Partial<DateRange>) {
         const endpoint = '/time_entries'
         const harvestDateRange = dateRange ? toHarvestDateRange(dateRange) : {}
-        const response = await this.axios.get<TimeEntriesResponse>(endpoint, {
-            params: harvestDateRange,
-        })
+        const response = await this.axios.get<TimeEntriesResponse>(endpoint, { params: harvestDateRange })
 
         return response.data
     }

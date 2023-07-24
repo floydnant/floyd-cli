@@ -1,11 +1,14 @@
 # wok-balance
 
-This library was generated with [Nx](https://nx.dev).
+Harvest & Personio integration for getting the current time tracking balance
 
-## Building
+## Prequisites
 
-Run `nx build wok-balance` to build the library.
+-   Acquire a Personio API token: https://developer.personio.de/docs/getting-started-with-the-personio-api
+-   Acquire a Harvest API token: https://help.getharvest.com/api-v2/authentication-api/authentication/authentication/
 
-## Running unit tests
+## Scripts
 
-Run `nx test wok-balance` to execute the unit tests via [Jest](https://jestjs.io).
+-  `nx build wok-balance`
+-  `nx lint wok-balance`
+-  `nx test wok-balance`

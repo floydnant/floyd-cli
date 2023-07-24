@@ -1,2 +1,2 @@
-export * from './string.util'
+export * from './string.utils'
 export * from './dates'

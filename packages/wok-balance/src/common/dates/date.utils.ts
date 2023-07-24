@@ -50,5 +50,8 @@ export const getWeekRangeOf = (date: LocalDate | LocalDateTime = LocalDate.now()
     return { startDate, endDate }
 }
 
-export const formatDate = (date: LocalDate | LocalDateTime) =>
-    date.format(DateTimeFormatter.ofPattern('dd.MM.yyyy'))
+export const formatDate = (date: LocalDate | LocalDateTime) => {
+    if (date instanceof LocalDateTime) return date.format(DateTimeFormatter.ofPattern('dd.MM.yyyy HH:mm'))
+
+    return date.format(DateTimeFormatter.ofPattern('dd.MM.yyyy'))
+}
