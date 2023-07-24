@@ -55,5 +55,3 @@ export const getPaddedStr = (str: string, fillString = '-') => {
     if (length < 1) return ''
     return str + ' ' + fillString.repeat(length).dim
 }
-
-export type UnwrapArray<T> = T extends (infer U)[] ? U : never

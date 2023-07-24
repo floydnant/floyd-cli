@@ -1,6 +1,6 @@
 import { execSync } from 'child_process'
-import { PullRequest } from './github.model'
-import { exec } from '../../utils'
+import { exec } from '../../lib/utils'
+import { PullRequest, Run } from './github.model'
 
 export const getPr = (
     prNumberOrBranch: number | string | undefined,
@@ -35,5 +35,16 @@ export const viewChecks = (prNumberOrBranch: number | string | undefined) => {
         exec(`gh pr checks ${prNumberOrBranch ?? ''}`)
     } catch {
         // silently do nothing
+    }
+}
+
+export const getRun = (runId: string | number) => {
+    try {
+        const str = execSync(
+            `gh run view ${runId} --json name,url,jobs,conclusion,databaseId,event,number,displayTitle,status,workflowName,workflowDatabaseId`,
+        ).toString()
+        return JSON.parse(str) as Run
+    } catch {
+        // silently fail
     }
 }

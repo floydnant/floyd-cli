@@ -1,8 +1,15 @@
-import { execSync } from 'child_process'
 import prompts from 'prompts'
-import { CheckRun, PullRequest, Run } from '../../../adapters/github'
-import { exec } from '../../../utils'
-import { CheckRunChoiceValue, getCheckChoices } from './check-choices'
+import {
+    CheckRun,
+    PrCheckRun,
+    PullRequest,
+    Run,
+    getJobIdFromRun,
+    getRun,
+    getRunIdFromCheck,
+} from '../../../adapters/github'
+import { exec } from '../../../lib/utils'
+import { getCheckChoices } from './check-choices'
 import { printChecks } from './print-checks'
 
 export const rerunChecks = async (prs: PullRequest[], refetchPrs: () => PullRequest[]) => {
@@ -10,7 +17,7 @@ export const rerunChecks = async (prs: PullRequest[], refetchPrs: () => PullRequ
 
     if (!checksChoices.length) return console.log('No failed checks to rerun'.dim)
 
-    const { checksToRerun }: { checksToRerun?: CheckRunChoiceValue[] } = await prompts({
+    const { checksToRerun }: { checksToRerun?: PrCheckRun[] } = await prompts({
         type: 'autocompleteMultiselect',
         name: 'checksToRerun',
         message: 'Select checks to rerun',
@@ -24,23 +31,6 @@ export const rerunChecks = async (prs: PullRequest[], refetchPrs: () => PullRequ
             : `Rerunning ${checksToRerun.length} checks...`.dim,
     )
     if (!checksToRerun?.length) return
-
-    const getRun = (runId: string | number) => {
-        try {
-            const str = execSync(
-                `gh run view ${runId} --json name,url,jobs,conclusion,databaseId,event,number,displayTitle,status,workflowName,workflowDatabaseId`,
-            ).toString()
-            return JSON.parse(str) as Run
-        } catch {
-            // silently fail
-        }
-    }
-
-    const getJobIdFromRun = (run: Run, jobName: string): number | undefined => {
-        return run.jobs.find(job => job.name === jobName)?.databaseId
-    }
-
-    const getRunIdFromCheck = (check: CheckRun) => check.detailsUrl.match(/\d+/g)?.[0]
 
     const runIds = new Set(checksToRerun.map(check => getRunIdFromCheck(check)).filter(Boolean) as string[])
 

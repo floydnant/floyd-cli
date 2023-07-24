@@ -1,7 +1,7 @@
 import { Command } from 'commander'
 import prompts from 'prompts'
 import { Worktree, getWorktreeFromBranch, getWorktrees } from '../../adapters/git'
-import { exec } from '../../utils'
+import { exec } from '../../lib/utils'
 import { selectWorktrees } from './lib/select-worktrees'
 
 const deleteWorktree = async (

@@ -1,5 +1,5 @@
 import { PullRequest, getCheckTitleString, isCheckRun } from '../../../adapters/github'
-import { getPaddedStr, indent } from '../../../utils'
+import { getPaddedStr, indent } from '../../../lib/utils'
 
 export const printChecks = (prs: PullRequest[]) => {
     if (!prs.length) return console.log('No open PRs to display'.dim)

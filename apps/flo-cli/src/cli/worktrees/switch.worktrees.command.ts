@@ -1,7 +1,7 @@
 import { Command } from 'commander'
 import path from 'path'
 import { getWorktreeFromBranch, getWorktrees } from '../../adapters/git'
-import { openWithVscode } from '../../utils'
+import { openWithVscode } from '../../lib/utils'
 import { selectWorktrees } from './lib/select-worktrees'
 
 const switchWorktree = async (branch: string | undefined, opts: { newWindow?: boolean; subDir?: string }) => {

@@ -1,6 +1,5 @@
 import prompts from 'prompts'
-import { UnwrapArray } from '../../../utils'
-import { PullRequest, isCheckRun, getCheckTitleString, CheckRun } from '../../../adapters/github'
+import { PullRequest, getCheckTitleString, isCheckRun } from '../../../adapters/github'
 
 export const getCheckChoices = (prs: PullRequest[]) =>
     prs
@@ -20,6 +19,3 @@ export const getCheckChoices = (prs: PullRequest[]) =>
             })
         })
         .flat()
-
-export type ChoiceValue = UnwrapArray<ReturnType<typeof getCheckChoices>>['value']
-export type CheckRunChoiceValue = Extract<ChoiceValue, CheckRun>

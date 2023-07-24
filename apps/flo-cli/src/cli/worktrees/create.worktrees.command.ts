@@ -3,7 +3,7 @@ import path from 'path'
 import prompts from 'prompts'
 import { getBranches, getRepoRootDir, getWorktrees } from '../../adapters/git'
 import { getOpenPrs, getPr } from '../../adapters/github'
-import { exec, openWithVscode } from '../../utils'
+import { exec, openWithVscode } from '../../lib/utils'
 
 const createWorktree = async (
     branch_: string | undefined,

@@ -1,4 +1,4 @@
-import { isSubDir } from '../../utils'
+import { isSubDir } from '../../lib/utils'
 import { Worktree } from './git.model'
 
 export const fixBranchName = (branch: string) =>

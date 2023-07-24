@@ -1,7 +1,7 @@
-import { getTimeTrackingServices } from '../../core/time-tracking/services'
+import { getTimeTrackingServices } from '../../../adapters/time-tracking'
 import { formatDate, DateRange, Nullable } from '@flo/common'
-import { getPaddedStr } from '../../utils'
-import { VerboseOption } from '../interfaces'
+import { getPaddedStr } from '../../../lib/utils'
+import { VerboseOption } from '../../../lib/interfaces'
 
 export async function printTimeTrackingBalance({
     startDate,

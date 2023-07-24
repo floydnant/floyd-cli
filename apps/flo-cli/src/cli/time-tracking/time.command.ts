@@ -1,7 +1,7 @@
 import { Command } from 'commander'
 import { parseDate, getWeekRangeOf } from '@flo/common'
-import { VerboseOption } from '../interfaces'
-import { printTimeTrackingBalance } from './balance'
+import { VerboseOption } from '../../lib/interfaces'
+import { printTimeTrackingBalance } from './lib/balance'
 
 interface Options extends VerboseOption {
     startDate?: string

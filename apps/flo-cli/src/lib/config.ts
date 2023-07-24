@@ -1,9 +1,9 @@
 import { existsSync } from 'fs'
 import path from 'path'
-import defaultConfigMap from './assets/default-configs/index.json'
+import defaultConfigMap from '../assets/default-configs/index.json'
 import { exec, isCodeInstalled, isNvimInstalled } from './utils'
 import 'colors'
-import { Workflow } from './cli/workflows/run.command'
+import { Workflow } from '../cli/workflows/run.command'
 
 // @TODO: Manage config with `configStore` package
 

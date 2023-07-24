@@ -1,8 +1,8 @@
 import { Command } from 'commander'
 import { copyFileSync, writeFileSync } from 'fs'
 import prompts from 'prompts'
-import { ConfigFile, getConfigFilePath } from '../../config'
-import { exec, indent } from '../../utils'
+import { ConfigFile, getConfigFilePath } from '../../lib/config'
+import { exec, indent } from '../../lib/utils'
 
 export interface Workflow {
     name: string

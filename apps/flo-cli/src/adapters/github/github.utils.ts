@@ -1,4 +1,4 @@
-import { Check, CheckRun, CheckRunStatus, Conclusion, PullRequest } from './github.model'
+import { Check, CheckRun, CheckRunStatus, Conclusion, PullRequest, Run } from './github.model'
 
 export const isCheckRun = (check: Check): check is CheckRun => check.__typename === 'CheckRun'
 
@@ -31,3 +31,9 @@ export const filterFailedChecks = (pr: PullRequest): PullRequest => {
         ),
     }
 }
+
+export const getJobIdFromRun = (run: Run, jobName: string): number | undefined => {
+    return run.jobs.find(job => job.name === jobName)?.databaseId
+}
+
+export const getRunIdFromCheck = (check: CheckRun) => check.detailsUrl.match(/\d+/g)?.[0]

@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { getBranchStatus, getCommitLogs, getWorktreeDisplayStr, getWorktrees } from '../../adapters/git'
-import { getPaddedStr, indent } from '../../utils'
+import { getPaddedStr, indent } from '../../lib/utils'
 
 const listWorktrees = (opts: { logs?: boolean | string }) => {
     const worktrees = getWorktrees()

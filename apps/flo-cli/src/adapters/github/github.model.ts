@@ -22,6 +22,8 @@ export interface CheckRun {
     completedAt: string
 }
 
+export type PrCheckRun = CheckRun & { prTitle: string; prNumber: number }
+
 export interface StatusContext {
     __typename: 'StatusContext'
     context: string
