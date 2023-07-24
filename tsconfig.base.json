@@ -13,13 +13,13 @@
         "strictPropertyInitialization": true,
         "noImplicitThis": true,
         "alwaysStrict": true,
-        // "noUnusedLocals": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
         "noPropertyAccessFromIndexSignature": true,
         "skipLibCheck": true,
         "paths": {
-            "@flo/wok-balance": ["packages/wok-balance/src/index.ts"]
+            "@flo/common": ["packages/common/src/index.ts"],
+            "@flo/time-tracking": ["packages/time-tracking/src/index.ts"]
         }
     }
 }

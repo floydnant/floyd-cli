@@ -1,7 +1,0 @@
-export * from './personio.util'
-export * from './personio.service'
-export * from './personio.repo'
-export * from './personio.config'
-export * from './models/personio.model'
-export * from './models/absences.model'
-export * from './models/employee.model'

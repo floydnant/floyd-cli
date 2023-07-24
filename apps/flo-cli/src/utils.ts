@@ -48,12 +48,12 @@ export const indent = (str: string, spaces = 4) =>
         .map(line => ' '.repeat(spaces) + line)
         .join('\n')
 
-export const getPaddedStr = (str: string) => {
+export const getPaddedStr = (str: string, fillString = '-') => {
     const DISPLAY_LENGTH = process.stdout.columns
 
     const length = DISPLAY_LENGTH - str.stripColors.length - 1
     if (length < 1) return ''
-    return str + ' ' + '-'.repeat(length).dim
+    return str + ' ' + fillString.repeat(length).dim
 }
 
 export type UnwrapArray<T> = T extends (infer U)[] ? U : never

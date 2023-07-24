@@ -1,6 +1,6 @@
 import { execSync } from 'child_process'
 import path from 'path'
-import { fixBranchName } from './git.util'
+import { fixBranchName } from './git.utils'
 import { Worktree } from './git.model'
 
 export const getBranches = (remote?: boolean) => {

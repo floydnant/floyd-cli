@@ -8,7 +8,7 @@ import { checksCommand } from './cli/checks'
 import { runCommand } from './cli/workflows/run.command'
 import { worktreesCommand } from './cli/worktrees'
 import { editConfig, readConfig } from './config'
-import { wokBalanceCommand } from './cli/balance'
+import { timeCommand } from './cli/time-tracking'
 
 const cli = new Command()
 
@@ -43,7 +43,7 @@ cli.command('hello')
 cli.addCommand(runCommand)
 cli.addCommand(worktreesCommand)
 cli.addCommand(checksCommand)
-cli.addCommand(wokBalanceCommand)
+cli.addCommand(timeCommand)
 
 cli.command('conf')
     .description('Shows the resolved config')

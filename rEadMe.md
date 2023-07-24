@@ -13,9 +13,12 @@ A cli for automating and simplifying common tasks such as
 2. Run `npm i`
 3. Run `npm i . -g` - may require the good ol' `sudo`
 
+If you make any changes to the source code, just run the npm `build` or `dev` scripts respectively and the updates will be reflected in the bin installation.
+
 ## TODO
 -   [ ] Refactor config handling -> consider using the configStore package
 -   [ ] Create a $schema for the config file
+-   [x] `common` folder should be its own package
 -   [x] Add installation instructions
 
 ### Features

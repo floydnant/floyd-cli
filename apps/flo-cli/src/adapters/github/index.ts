@@ -1,3 +1,3 @@
-export * from './github.util'
+export * from './github.utils'
 export * from './github.model'
 export * from './github.repo'

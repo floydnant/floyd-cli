@@ -1,0 +1,34 @@
+{
+    "name": "time-tracking",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/time-tracking/src",
+    "projectType": "library",
+    "targets": {
+        "build": {
+            "executor": "@nx/js:tsc",
+            "outputs": ["{options.outputPath}"],
+            "options": {
+                "outputPath": "dist/time-tracking",
+                "main": "time-tracking/src/index.ts",
+                "tsConfig": "packages/time-tracking/tsconfig.lib.json",
+                "assets": ["packages/time-tracking/*.md"]
+            }
+        },
+        "lint": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/time-tracking/**/*.ts"]
+            }
+        },
+        "test": {
+            "executor": "@nx/vite:test",
+            "outputs": ["coverage/packages/time-tracking"],
+            "options": {
+                "passWithNoTests": true,
+                "reportsDirectory": "../coverage/packages/time-tracking"
+            }
+        }
+    },
+    "tags": []
+}
