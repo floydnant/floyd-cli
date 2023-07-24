@@ -1,4 +1,4 @@
-import { DateRange, toNativeDate } from '../../common/date.util'
+import { DateRange, toNativeDate } from '../../common'
 import { HarvestDateRange } from './models/harvest.model'
 
 export const toHarvestDateRange = ({ startDate, endDate }: Partial<DateRange>): HarvestDateRange => ({

@@ -1,4 +1,4 @@
-import { DateRange } from '../../common/date.util'
+import { DateRange } from '../../common'
 import { IPersonioRepo } from './personio.repo'
 
 export class PersonioService {

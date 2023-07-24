@@ -1,4 +1,4 @@
-import { DateRange } from '../../common/date.util'
+import { DateRange } from '../../common'
 import { IHarvestRepo } from './harvest.repo'
 
 export class HarvestService {

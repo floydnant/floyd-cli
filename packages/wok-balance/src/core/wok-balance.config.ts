@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { harvestConfigSchema } from '../adapters/harvest/harvest.config'
-import { personioConfigSchema } from '../adapters/personio/personio.config'
+import { harvestConfigSchema, personioConfigSchema } from '../adapters'
 
 export const wokBalanceConfigSchema = z.object({
     ...harvestConfigSchema.shape,

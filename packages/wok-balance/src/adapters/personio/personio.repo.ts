@@ -1,6 +1,5 @@
 import axios from 'axios'
-import { DateRange } from '../../common/date.util'
-import { interpolateParams } from '../../common/string.util'
+import { DateRange, interpolateParams } from '../../common'
 import { mockAbsencesResponse } from './mocks/absences.mock'
 import { mockEmployeeResponse, mockEmployeesResponse } from './mocks/employees.mock'
 import { AbsencesResponse } from './models/absences.model'

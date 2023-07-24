@@ -1,6 +1,6 @@
 {
     "name": "floyd-cli-root",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "A cli for automating and simplifying common tasks",
     "main": "./bin/index.js",
     "bin": {

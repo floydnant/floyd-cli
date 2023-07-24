@@ -1,9 +1,8 @@
 import axios from 'axios'
-import { DateRange } from '../../common/date.util'
+import { DateRange } from '../../common'
 import { HarvestConfig } from './harvest.config'
 import { TimeEntriesResponse } from './models/time-entry.model'
 import { toHarvestDateRange } from './harvest.util'
-import path from 'path'
 import { mockTimeEntry } from './mocks/time-entry.mock'
 
 export interface IHarvestRepo {
