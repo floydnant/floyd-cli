@@ -18,7 +18,8 @@ const switchWorktree = async (branch: string | undefined, opts: { newWindow?: bo
     const selectedWorktrees = await selectWorktrees(worktrees, { multiple: false })
     if (!selectedWorktrees?.length) return
 
-    const folderPath = path.join(selectedWorktrees[0].dir, opts.subDir || '')
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const folderPath = path.join(selectedWorktrees[0]!.dir, opts.subDir || '')
     openWithVscode(folderPath, openOpts)
 }
 

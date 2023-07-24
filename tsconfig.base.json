@@ -1,14 +1,22 @@
 {
     "compilerOptions": {
-        "target": "es2016",
+        "target": "es2020",
         "module": "commonjs",
         "resolveJsonModule": true,
+        "importsNotUsedAsValues": "remove",
         "esModuleInterop": true,
         "baseUrl": "./",
         "forceConsistentCasingInFileNames": true,
         "strict": true,
         "noImplicitAny": true,
         "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        // "noUnusedLocals": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "noPropertyAccessFromIndexSignature": true,
         "skipLibCheck": true,
         "paths": {
             "@flo/wok-balance": ["packages/wok-balance/src/index.ts"]
