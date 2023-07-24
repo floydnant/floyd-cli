@@ -5,4 +5,5 @@ bin
 dist
 tmp
 env.json
+.env
 testdir

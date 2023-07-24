@@ -4,7 +4,6 @@ import {
     MockPersonioRepo,
     PersonioService,
     WokBalanceService,
-    wokBalanceConfigSchema,
 } from '@flo/wok-balance'
 
 let services: {
@@ -17,7 +16,7 @@ export const getWokBalanceServices = () => {
     if (services) return services
 
     // @TODO: where do we want to store the config?
-    const config = wokBalanceConfigSchema.safeParse(process.env)
+    // const config = wokBalanceConfigSchema.parse(env)
 
     const harvestService = new HarvestService(new MockHarvestRepo())
     // const harvestService = new HarvestService(new HarvestRepo(config))
