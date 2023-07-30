@@ -7,6 +7,7 @@
         "build": {
             "executor": "@nx/js:tsc",
             "outputs": ["{options.outputPath}"],
+            "dependsOn": ["common:build"],
             "options": {
                 "outputPath": "dist/time-tracking",
                 "main": "time-tracking/src/index.ts",
