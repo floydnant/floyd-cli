@@ -1,7 +1,7 @@
-import { PullRequest, getCheckTitleString, isCheckRun } from '../../../adapters/github'
+import { PullRequestWithChecks, getCheckTitleString, isCheckRun } from '../../../adapters/github'
 import { getPaddedStr, indent } from '../../../lib/utils'
 
-export const printChecks = (prs: PullRequest[]) => {
+export const printChecks = (prs: PullRequestWithChecks[]) => {
     if (!prs.length) return console.log('No open PRs to display'.dim)
 
     const prStrings = prs.map(pr => {

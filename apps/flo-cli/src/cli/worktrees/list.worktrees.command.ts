@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { getBranchStatus, getCommitLogs, getWorktreeDisplayStr, getWorktrees } from '../../adapters/git'
+import { getGitStatus, getCommitLogs, getWorktreeDisplayStr, getWorktrees } from '../../adapters/git'
 import { getPaddedStr, indent } from '../../lib/utils'
 
 const listWorktrees = (opts: { logs?: boolean | string }) => {
@@ -7,7 +7,7 @@ const listWorktrees = (opts: { logs?: boolean | string }) => {
         .map(tree => {
             const worktreeStr = getWorktreeDisplayStr(tree)
 
-            const status = getBranchStatus(tree.dir)
+            const status = getGitStatus(tree.dir)
             const statusDisplay = !status ? ' Clean'.dim : status
 
             const logLimit = isNaN(parseInt(opts.logs as string)) ? 5 : (opts.logs as unknown as number)

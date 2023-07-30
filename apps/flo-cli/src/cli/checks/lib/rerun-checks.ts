@@ -2,7 +2,7 @@ import prompts from 'prompts'
 import {
     CheckRun,
     PrCheckRun,
-    PullRequest,
+    PullRequestWithChecks,
     Run,
     getJobIdFromRun,
     getRun,
@@ -12,7 +12,10 @@ import { exec } from '../../../lib/utils'
 import { getCheckChoices } from './check-choices'
 import { printChecks } from './print-checks'
 
-export const rerunChecks = async (prs: PullRequest[], refetchPrs: () => PullRequest[]) => {
+export const rerunChecks = async (
+    prs: PullRequestWithChecks[],
+    refetchPrs: () => PullRequestWithChecks[],
+) => {
     const checksChoices = getCheckChoices(prs)
 
     if (!checksChoices.length) return console.log('No failed checks to rerun'.dim)

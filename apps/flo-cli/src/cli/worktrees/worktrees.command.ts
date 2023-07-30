@@ -9,7 +9,7 @@ import { listWorktreesCommand } from './list.worktrees.command'
 
 export const worktreesCommand = new Command()
     .createCommand('worktrees')
-    .alias('tr')
+    .aliases(['wok', 'tr'])
     .description('Manage git worktrees')
     .addCommand(listWorktreesCommand, { isDefault: true })
     .addCommand(switchCommand)

@@ -1,7 +1,7 @@
 import prompts from 'prompts'
-import { PullRequest, getCheckTitleString, isCheckRun } from '../../../adapters/github'
+import { PullRequestWithChecks, getCheckTitleString, isCheckRun } from '../../../adapters/github'
 
-export const getCheckChoices = (prs: PullRequest[]) =>
+export const getCheckChoices = (prs: PullRequestWithChecks[]) =>
     prs
         .map(pr => {
             const prTitle = `${'#' + pr.number} ${pr.title.dim}`
