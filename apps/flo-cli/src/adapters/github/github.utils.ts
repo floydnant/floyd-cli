@@ -1,4 +1,4 @@
-import { Check, CheckRun, CheckRunStatus, Conclusion, PullRequest, Run } from './github.model'
+import { Check, CheckRun, CheckRunStatus, Conclusion, PullRequestWithChecks, Run } from './github.model'
 
 export const isCheckRun = (check: Check): check is CheckRun => check.__typename === 'CheckRun'
 
@@ -23,7 +23,7 @@ export const getCheckTitleString = (check: Check) => {
     return `${statusString[conclusion || status]?.(workflowName + name) || `${statusStr} ${name}`}`
 }
 
-export const filterFailedChecks = (pr: PullRequest): PullRequest => {
+export const filterFailedChecks = (pr: PullRequestWithChecks): PullRequestWithChecks => {
     return {
         ...pr,
         statusCheckRollup: pr.statusCheckRollup.filter(

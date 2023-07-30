@@ -1,8 +1,10 @@
 import { execSync } from 'child_process'
 import 'colors'
 import path from 'path'
+import { Logger } from './logger'
 
-export const exec = (command: string) => execSync(command, { stdio: 'inherit' })
+export const exec = (command: string, workingDir?: string) =>
+    execSync(command, { stdio: 'inherit', cwd: workingDir })
 
 export const test = (command: string) => {
     try {
@@ -16,7 +18,10 @@ export const test = (command: string) => {
 export const assertGitHubInstalled = () => {
     if (test('gh --version')) return
 
-    console.log('Please install gh cli with `brew install gh`'.red)
+    Logger.getInstance().error(
+        'Please install gh cli with `brew install gh` or go here: https://cli.github.com/manual/installation'
+            .red,
+    )
     process.exit(1)
 }
 
@@ -24,14 +29,16 @@ export const isCodeInstalled = () => test('code --version')
 export const assertCodeInstalled = () => {
     if (isCodeInstalled()) return
 
-    console.log('Please install vscode cli `code`'.red)
+    Logger.getInstance().error('Please install vscode cli `code`'.red)
     process.exit(1)
 }
 export const openWithVscode = (directory: string, opts?: { reuse?: boolean }) => {
     assertCodeInstalled()
 
-    console.log(`Opening ${directory.yellow} ${opts?.reuse ? 'in same window' : 'in new window'}...`.dim)
-    exec(`code ${opts?.reuse ? '-r' : ''} ${directory}`)
+    Logger.getInstance().log(
+        `Opening ${directory.yellow} ${opts?.reuse ? 'in same window' : 'in new window'}...`.dim,
+    )
+    exec(`code ${opts?.reuse ? '--reuse-window' : ''} ${directory}`)
 }
 
 export const isNvimInstalled = () => test('nvim --version')
@@ -55,3 +62,5 @@ export const getPaddedStr = (str: string, fillString = '-') => {
     if (length < 1) return ''
     return str + ' ' + fillString.repeat(length).dim
 }
+
+export const getRelativePathOf = (pathString: string) => path.relative(process.cwd(), pathString) || './'

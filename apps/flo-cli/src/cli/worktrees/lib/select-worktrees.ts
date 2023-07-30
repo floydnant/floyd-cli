@@ -1,5 +1,5 @@
 import prompts from 'prompts'
-import { Worktree, getBranchStatus, getWorktreeDisplayStr, getWorktrees } from '../../../adapters/git'
+import { Worktree, getGitStatus, getWorktreeDisplayStr, getWorktrees } from '../../../adapters/git'
 
 export const selectWorktrees = async (
     worktrees = getWorktrees(),
@@ -10,11 +10,11 @@ export const selectWorktrees = async (
     const message = opts?.message || defaultMessage
 
     const { trees }: { trees?: Worktree[] | Worktree } = await prompts({
-        type: multiple ? 'autocompleteMultiselect' : 'autocomplete',
+        type: multiple ? 'multiselect' : 'select',
         name: 'trees',
         message: message || defaultMessage,
         choices: worktrees.map(tree => ({
-            title: getWorktreeDisplayStr(tree, !!getBranchStatus(tree.dir)),
+            title: getWorktreeDisplayStr(tree, !!getGitStatus(tree.dir)),
             value: tree,
         })),
         instructions: false,

@@ -10,8 +10,8 @@ A cli for automating and simplifying common tasks such as
 ## Installation
 
 1. Clone the repo
-2. Run `npm i`
-3. Run `npm i . -g` - may require the good ol' `sudo`
+2. Run `npm i` to install dependencies and build the CLI
+3. Run `npm i . -g` to make the CLI globally available - may require the good ol' `sudo`
 
 If you make any changes to the source code, just run the npm `build` or `dev` scripts respectively and the updates will be reflected in the bin installation.
 
@@ -28,6 +28,7 @@ If you make any changes to the source code, just run the npm `build` or `dev` sc
 -   [ ] More workflow commands
     -   [ ] Make more generic
     -   [ ] eslint
+    -   [ ] Implement workflow runs after worktree creation
 -   [ ] Maybe some ci runs specific stuff (for handling runs that arent triggered by a PR)
 -   [ ] PRs
     -   [x] Checks

@@ -1,5 +1,10 @@
 import { Command } from 'commander'
-import { PullRequest, filterFailedChecks, getOpenPrs, getPr } from '../../adapters/github'
+import {
+    PullRequestWithChecks,
+    filterFailedChecks,
+    getOpenPullRequests,
+    getPullRequest,
+} from '../../adapters/github'
 import { assertGitHubInstalled } from '../../lib/utils'
 import { printChecks } from './lib/print-checks'
 import { rerunChecks } from './lib/rerun-checks'
@@ -10,8 +15,10 @@ const checksHandler = (
 ) => {
     assertGitHubInstalled()
 
-    const getPrs = (): PullRequest[] => {
-        return !opts.all || prNumberOrBranch ? [getPr(prNumberOrBranch)] : getOpenPrs()
+    const getPrs = (): PullRequestWithChecks[] => {
+        return !opts.all || prNumberOrBranch
+            ? [getPullRequest(prNumberOrBranch, { checks: true })]
+            : getOpenPullRequests({ checks: true })
     }
 
     const prs = opts.failed ? getPrs().map(filterFailedChecks) : getPrs()

@@ -4,6 +4,9 @@ import defaultConfigMap from '../assets/default-configs/index.json'
 import { exec, isCodeInstalled, isNvimInstalled } from './utils'
 import 'colors'
 import { Workflow } from '../cli/workflows/run.command'
+import { LogLevel } from './logger'
+
+export const DEFAULT_LOG_LEVEL = LogLevel.VERBOSE
 
 // @TODO: Manage config with `configStore` package
 

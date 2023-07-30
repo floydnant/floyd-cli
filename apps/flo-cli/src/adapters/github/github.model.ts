@@ -3,6 +3,8 @@ export interface PullRequest {
     title: string
     url: string
     headRefName: string
+}
+export interface PullRequestWithChecks extends PullRequest {
     statusCheckRollup: Check[]
 }
 

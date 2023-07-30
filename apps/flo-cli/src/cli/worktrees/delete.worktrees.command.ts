@@ -1,8 +1,9 @@
 import { Command } from 'commander'
 import prompts from 'prompts'
-import { Worktree, getWorktreeFromBranch, getWorktrees } from '../../adapters/git'
+import { getWorktreeFromBranch, getWorktrees } from '../../adapters/git'
 import { exec } from '../../lib/utils'
 import { selectWorktrees } from './lib/select-worktrees'
+import { Logger } from '../../lib/logger'
 
 const deleteWorktree = async (
     branch: string | undefined,
@@ -10,6 +11,7 @@ const deleteWorktree = async (
 ) => {
     const worktrees = getWorktrees()
     const optsDelete = (opts.deleteBranch || opts.forceDeleteBranch) && { deleteBranch: true }
+    const logger = Logger.getInstance()
 
     if (branch) {
         const worktree = getWorktreeFromBranch(branch, worktrees)
@@ -38,8 +40,9 @@ const deleteWorktree = async (
 
         try {
             exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${worktree.branch}`)
-        } catch {
-            // silently fail
+        } catch (e) {
+            logger.debug(e)
+            logger.error(`Failed to delete branch ${branch}`)
         }
         return
     }
@@ -50,31 +53,31 @@ const deleteWorktree = async (
         return
     }
 
-    const selectedTrees = (await selectWorktrees(removeableWorktrees, {
+    const selectedTrees = await selectWorktrees(removeableWorktrees, {
         message: 'Select worktrees to remove',
-    })) as Worktree[] | null
+    })
     if (!selectedTrees?.length) return
 
     const { deleteBranch } =
         optsDelete ||
-        (await prompts({
+        (console.log(selectedTrees.map(tree => tree.branch.green).join('\n')),
+        await prompts({
             type: 'confirm',
             name: 'deleteBranch',
-            message:
-                'Delete'.red +
-                ` the branches ${selectedTrees.map(tree => tree.branch.green).join(', ')} too?`,
+            message: `${'Delete'.red} ${selectedTrees.length > 1 ? 'these branches' : 'this branch'} too?`,
         }))
 
     selectedTrees.forEach(tree => {
-        console.log(`Removing worktree ${tree.dir.yellow}...`.dim)
+        console.log(`\nRemoving worktree ${tree.dir.yellow}...`.dim)
 
         exec(`git worktree remove ${opts.force ? '--force' : ''} ${tree.dir}`)
 
         if (deleteBranch) {
             try {
                 exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${tree.branch}`)
-            } catch {
-                // silently fail
+            } catch (e) {
+                logger.debug(e)
+                logger.error(`Failed to delete branch ${tree.branch}`)
             }
         }
     })
@@ -88,5 +91,4 @@ export const deleteWorktreeCommand = new Command()
     .option('-f, --force', 'force removal even if worktree is dirty or locked')
     .option('-d, --deleteBranch', 'delete the related branch')
     .option('-D, --forceDeleteBranch', 'force delete the related branch')
-
     .action(deleteWorktree)
