@@ -15,8 +15,28 @@ A cli for automating and simplifying common tasks such as
 
 If you make any changes to the source code, just run the npm `build` or `dev` scripts respectively and the updates will be reflected in the bin installation.
 
+# Usage
+
+## General
+
+```bash
+flo help # for available commands
+flo help <command> # for help on a command, or flo <command> --help
+```
+
+All commands that are avaible, but not documented here are WIP.
+
+## Worktrees
+
+```bash
+flo worktrees|wok|tr create|c # create new from branch / pull request
+flo worktrees|wok|tr list|ls # list worktrees for current repo
+flo worktrees|wok|tr delete|d # delete worktrees for current repo
+flo worktrees|wok|tr switch|sw # switch vs code window
+```
+
 ## TODO
--   [ ] Refactor config handling -> consider using the configStore package
+-   [ ] Refactor config handling -> consider using a config manager package or hurry the fuck up w/ custom implementation
 -   [ ] Create a $schema for the config file
 -   [x] `common` folder should be its own package
 -   [x] Add installation instructions
