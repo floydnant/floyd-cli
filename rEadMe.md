@@ -4,7 +4,7 @@ A cli for automating and simplifying common tasks such as
 
 -   Managing git worktrees (creating, displaying, switching, deleting, etc.)
 -   Managing pr checks (displaying, rerunning, etc.)
--   Scaffolding projects
+-   Running common tasks as automated scripts
 -   More to come...
 
 ## Installation
@@ -15,28 +15,61 @@ A cli for automating and simplifying common tasks such as
 
 If you make any changes to the source code, just run the npm `build` or `dev` scripts respectively and the updates will be reflected in the bin installation.
 
-# Usage
+## Updates
 
-## General
+There is currently no proper update automation in place (on the roadmap), so you have to manually run these commands to get the latest changes:
+```bash
+cd <folder> # the folder in which you cloned this repo, obviously
+git pull
+npm i
+```
+
+## Usage
+
+Arguments displayed as `[argument]` are optional, the ones displayed as `<argument>` are required.
 
 ```bash
 flo help # for available commands
 flo help <command> # for help on a command, or flo <command> --help
 ```
 
-All commands that are avaible, but not documented here are WIP.
+Disclaimer: All commands that are available, but not documented here are WIP.
 
 ## Worktrees
 
+You can use these aliases for a quicker typing experience
 ```bash
-flo worktrees|wok|tr create|c # create new from branch / pull request
-flo worktrees|wok|tr list|ls # list worktrees for current repo
-flo worktrees|wok|tr delete|d # delete worktrees for current repo
-flo worktrees|wok|tr switch|sw # switch vs code window
+flo worktrees|wok|tr <subcomand>
+```
+
+You can pass a branch name to the commands for quicker usage or leave it blank for an interactive prompt.
+Refer to the `--help` pages for possible options and arguments.
+
+```bash
+# Create a fresh worktree from a branch
+flo tr create|c [new or existing branch]
+
+# Create a fresh worktree from a pull request
+flo tr create|c --pr [number or branch]
+
+# List worktrees for current repo
+flo tr list|ls
+flo tr # Also works as a shorthand
+
+# Delete worktrees for current repo
+flo tr delete|d [branch]
+
+# Switch vs code window to another worktree
+flo tr switch|sw [branch]
+
+# Open a worktree in a fresh vs code window
+flo tr open|o [branch]
 ```
 
 ## TODO
--   [ ] Refactor config handling -> consider using a config manager package or hurry the fuck up w/ custom implementation
+-   [ ] Refactor config handling -> consider using one of the following packages or hurry the fuck up w/ custom implementation
+    - configStore 
+    - https://npm.io/package/@geek/config
 -   [ ] Create a $schema for the config file
 -   [x] `common` folder should be its own package
 -   [x] Add installation instructions

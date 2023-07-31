@@ -1,10 +1,10 @@
 import { Command } from 'commander'
-import { switchCommand } from './switch.worktrees.command'
+import { openCommand, switchCommand } from './switch.worktrees.command'
 import { createWorktreeCommand } from './create.worktrees.command'
 import { deleteWorktreeCommand } from './delete.worktrees.command'
 import { listWorktreesCommand } from './list.worktrees.command'
 
-// @TODO: Add a command to rename a worktree to the current branch name
+// @TODO: Add a command to rename a worktree
 // @TODO: Add ability to run workflows after creating / switching to a worktree
 
 export const worktreesCommand = new Command()
@@ -13,5 +13,6 @@ export const worktreesCommand = new Command()
     .description('Manage git worktrees')
     .addCommand(listWorktreesCommand, { isDefault: true })
     .addCommand(switchCommand)
+    .addCommand(openCommand)
     .addCommand(createWorktreeCommand)
     .addCommand(deleteWorktreeCommand)
