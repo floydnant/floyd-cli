@@ -103,7 +103,7 @@ export const deleteBranch = (
 
 export const gitFetch = (upstream?: string) => {
     Logger.getInstance().verbose(`\nFetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
-    exec(`git fetch ${upstream}`)
+    exec(`git fetch ${upstream || ''}`)
 }
 
 export const gitPull = (upstream?: string, workingDir?: string) => {
