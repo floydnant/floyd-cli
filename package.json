@@ -33,7 +33,7 @@
         "@nx/js": "^16.5.5",
         "@nx/linter": "16.5.5",
         "@nx/node": "^16.5.5",
-        "@nx/vite": "16.5.5",
+        "@nx/vite": "16.6.0",
         "@total-typescript/ts-reset": "^0.4.2",
         "@types/jest": "^29.4.0",
         "@types/node": "^20.4.4",
