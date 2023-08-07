@@ -18,6 +18,7 @@ If you make any changes to the source code, just run the npm `build` or `dev` sc
 ## Updates
 
 There is currently no proper update automation in place (on the roadmap), so you have to manually run these commands to get the latest changes:
+
 ```bash
 cd <folder> # the folder in which you cloned this repo, obviously
 git pull
@@ -38,6 +39,7 @@ Disclaimer: All commands that are available, but not documented here are WIP.
 ## Worktrees
 
 You can use these aliases for a quicker typing experience
+
 ```bash
 flo worktrees|wok|tr <subcomand>
 ```
@@ -67,21 +69,24 @@ flo tr open|o [branch]
 ```
 
 ## TODO
--   [ ] Refactor config handling -> consider using one of the following packages or hurry the fuck up w/ custom implementation
-    - configStore 
-    - https://npm.io/package/@geek/config
+
 -   [ ] Create a $schema for the config file
--   [x] `common` folder should be its own package
--   [x] Add installation instructions
+-   [ ] Document workflows properly
+-   [ ] Document config properly
+-   [ ] Implement worktree hook setup wizard
+-   [ ] Implement config file migrations
+-   [ ] Refactor stuff to singleton classes
+    -   [ ] `git.repo`
 
 ### Features
+
 -   [x] git worktrees
 -   [ ] http server
 -   [ ] Playgrounds (angular, ...) -> take inspration from joshua morony's playground script
 -   [ ] More workflow commands
-    -   [ ] Make more generic
+    -   [x] Make more generic
     -   [ ] eslint
-    -   [ ] Implement workflow runs after worktree creation
+    -   [x] Implement workflow runs after worktree creation
 -   [ ] Maybe some ci runs specific stuff (for handling runs that arent triggered by a PR)
 -   [ ] PRs
     -   [x] Checks

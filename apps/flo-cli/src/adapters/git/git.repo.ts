@@ -2,8 +2,8 @@ import { execSync } from 'child_process'
 import path from 'path'
 import { fixBranchName } from './git.utils'
 import { Worktree } from './git.model'
-import { Logger } from '../../lib/logger'
-import { exec } from '../../lib/utils'
+import { Logger } from '../../lib/logger.service'
+import { exec, isSubDir } from '../../lib/utils'
 
 export const getBranches = (remote?: boolean) => {
     return execSync(`git branch ${remote ? '-r' : ''} --format "%(refname:short)"`)
@@ -25,13 +25,14 @@ export const getWorktrees = (): Worktree[] => {
     const output = execSync('git worktree list --porcelain').toString().trim()
     const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
     const repoRootDir = getRepoRootDir()
+    const cwd = process.cwd()
 
     const worktrees = worktreeTextBlocks
         .map<Worktree>(block => {
-            const dir = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '')
+            const worktreeDir = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '')
             const branch = block.match(/^branch .+/m)?.[0].replace('branch ', '')
 
-            if (!dir) {
+            if (!worktreeDir) {
                 console.log(`Couldn't match a directory in:\n${block}`.red)
                 process.exit(1)
             }
@@ -41,13 +42,35 @@ export const getWorktrees = (): Worktree[] => {
             }
 
             return {
-                dir,
+                dir: worktreeDir,
                 branch: fixBranchName(branch || ''),
-                isMainWorktree: repoRootDir == dir,
+                isMainWorktree: repoRootDir == worktreeDir,
+                isCurrent: cwd == worktreeDir || isSubDir(cwd, worktreeDir),
             }
         })
         .filter(wt => !!wt.dir)
     return worktrees
+}
+
+export class GitRepository {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    private constructor() {}
+
+    private static instance: GitRepository
+    static getInstance() {
+        if (!this.instance) this.instance = new this()
+        return this.instance
+    }
+
+    private worktrees: Worktree[] | null = null
+    getWorktrees() {
+        if (!this.worktrees) this.worktrees = getWorktrees()
+        return this.worktrees
+    }
+
+    getCurrentWorktree() {
+        return this.getWorktrees().find(tree => tree.isCurrent)
+    }
 }
 
 export const getWorktreeFromBranch = (branch: string, worktrees = getWorktrees()) => {

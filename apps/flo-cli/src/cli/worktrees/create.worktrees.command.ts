@@ -3,11 +3,15 @@ import path from 'path'
 import prompts from 'prompts'
 import { createBranch, getBranches, getWorktrees, gitFetch } from '../../adapters/git'
 import { getOpenPullRequests, getPullRequest } from '../../adapters/github'
-import { Logger } from '../../lib/logger'
+import { ConfigService } from '../../lib/config/config.service'
+import { Logger } from '../../lib/logger.service'
 import { assertGitHubInstalled, openWithVscode } from '../../lib/utils'
+import { runWorkflow } from '../../lib/workflows/run-workflow'
+import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
 import { selectBranch } from './lib/select-branch'
 import { selectPullRequest } from './lib/select-pull-request'
 import { setupWorktree } from './lib/setup-worktree'
+import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
 
 const createWorktree = async (
     branch_: string | undefined,
@@ -93,12 +97,16 @@ const createWorktree = async (
         branchToCheckout: branch,
     })
 
+    const workflow = getWorktreeHook(WorktreeHook.OnCreate)
+    ConfigService.getInstance().contextVariables.newWorktreeRoot = worktree.dir
+    if (workflow) await runWorkflow(workflow)
+
     logger.log()
     const folderPath = path.join(worktree.dir, opts.subDir || '')
     const { next }: { next?: () => void } = await prompts({
         type: 'select',
         name: 'next',
-        message: 'What next?',
+        message: 'Your worktree is ready! What next?',
 
         choices: [
             {

@@ -37,8 +37,8 @@ export class Logger {
     log(...args: unknown[]) {
         if ([LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG].includes(this.logLevel)) console.log(...args)
     }
-    verbose(message: string) {
-        if ([LogLevel.DEBUG, LogLevel.VERBOSE].includes(this.logLevel)) console.log(message.dim)
+    verbose(message: string, ...args: unknown[]) {
+        if ([LogLevel.DEBUG, LogLevel.VERBOSE].includes(this.logLevel)) console.log(message.dim, ...args)
     }
     debug(...args: unknown[]) {
         if (LogLevel.DEBUG == this.logLevel) console.debug('DEBUG:'.bgYellow.black, ...args)

@@ -1,7 +1,7 @@
 import { execSync } from 'child_process'
 import 'colors'
 import path from 'path'
-import { Logger } from './logger'
+import { Logger } from './logger.service'
 
 export const exec = (command: string, workingDir?: string) =>
     execSync(command, { stdio: 'inherit', cwd: workingDir })

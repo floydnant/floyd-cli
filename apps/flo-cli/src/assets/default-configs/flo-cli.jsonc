@@ -1,0 +1,61 @@
+{
+    "version": "$cliVersion",
+    "loglevel": "VERBOSE",
+    "workflows": [
+        {
+            "name": "Example workflow",
+            "workflowId": "example",
+            "description": "This example demonstrates flo-cli's workflow usage",
+            "steps": [
+                {
+                    "name": "Test step 1",
+                    "command": "echo 'Example output'",
+                    "cwd": "$repoRoot"
+                }
+            ]
+        },
+        {
+            "name": "Update floyd-cli",
+            "workflowId": "update",
+            "description": "Pulls changes and rebuilds flo-cli",
+            "steps": [
+                {
+                    "name": "Pull latest changes",
+                    "cwd": "$cliRoot",
+                    "command": "git pull --rebase"
+                },
+                {
+                    "name": "Install dependencies and rebuild floyd-cli",
+                    "cwd": "$cliRoot",
+                    "command": "npm i"
+                }
+            ]
+        },
+        {
+            "name": "Setup floyd-cli worktree",
+            "workflowId": "prepare-floyd-cli-worktree",
+            "steps": [
+                {
+                    "name": "Copy environment variables",
+                    "copyFrom": "$repoRoot/.env",
+                    "to": "$newWorktreeRoot/.env"
+                },
+                {
+                    "workflow": "example"
+                },
+                {
+                    "command": "npm i",
+                    "cwd": "$newWorktreeRoot"
+                }
+            ]
+        }
+    ],
+    "projects": {
+        "floyd-cli": {
+            "worktreeHooks": {
+                "onCreate": "prepare-floyd-cli-worktree",
+                "onSwitch": "example"
+            }
+        }
+    }
+}

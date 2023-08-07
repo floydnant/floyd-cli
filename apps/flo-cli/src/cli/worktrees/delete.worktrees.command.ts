@@ -3,7 +3,7 @@ import prompts from 'prompts'
 import { getWorktreeFromBranch, getWorktrees } from '../../adapters/git'
 import { exec } from '../../lib/utils'
 import { selectWorktrees } from './lib/select-worktrees'
-import { Logger } from '../../lib/logger'
+import { Logger } from '../../lib/logger.service'
 
 const deleteWorktree = async (
     branch: string | undefined,
