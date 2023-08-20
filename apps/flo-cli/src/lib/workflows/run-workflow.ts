@@ -1,49 +1,58 @@
 import { copyFileSync } from 'fs'
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { assertUnreachable } from '../../../../../packages/common/src'
-import { ConfigService } from '../config/config.service'
 import { Logger } from '../logger.service'
-import { exec } from '../utils'
-import { Workflow } from './workflow.schemas'
-import { resolveStep, isCommandStep, isFilesStep, isWorflowStep, filterSteps } from './workflow.utils'
+import { exec, getPaddedStr, indent } from '../utils'
+import { ResolvedWorkflow } from './workflow.schemas'
+import {
+    filterSteps,
+    isResolvedCommandStep,
+    isResolvedFilesStep,
+    isResolvedWorflowStep,
+} from './workflow.utils'
+import { printStep } from './print-workflow'
 
-export const runWorkflow = async (workflow: Workflow, opts: { yes?: boolean; confirm?: boolean } = {}) => {
-    const workflowName = workflow.name?.blue || workflow.workflowId.magenta
+export const runWorkflow = async (
+    workflow: ResolvedWorkflow,
+    opts: { yes?: boolean; confirm?: boolean } = {},
+) => {
+    const workflowName = workflow.name
     const logger = Logger.getInstance()
-    const configService = ConfigService.getInstance()
 
-    let steps = workflow.steps.map(resolveStep)
+    let steps = workflow.steps
 
     if ((opts.confirm || workflow.confirm) && !opts.yes) {
         const filteredSteps = await filterSteps(steps)
         if (!filteredSteps) {
-            logger.warn(`No steps to run for workflow '${workflowName}'`)
+            logger.warn(`User abortion`)
+            return
+        }
+        if (!filteredSteps.length) {
+            logger.warn(`No steps left after filtering on workflow '${workflowName}'`)
             return
         }
         steps = filteredSteps
     }
 
-    logger.log('Running'.dim, workflowName, '...\n'.dim)
+    logger.log(getPaddedStr(indent(workflowName, workflow.nestingLevel * 4), '-'.blue))
 
     for (const step of steps) {
-        if (step.name) logger.verbose(step.name, '...'.dim)
+        const logStep = () => printStep(step, workflow.nestingLevel, logger.verbose, false)
 
-        if (isCommandStep(step)) {
+        if (isResolvedCommandStep(step)) {
+            logStep()
             exec(step.command, step.cwd)
 
             continue
-        } else if (isFilesStep(step)) {
+        }
+        if (isResolvedFilesStep(step)) {
+            logStep()
             copyFileSync(step.copyFrom, step.to)
 
             continue
-        } else if (isWorflowStep(step)) {
-            const workflow = configService.config.workflows?.find(w => w.workflowId == step.workflow)
-            if (!workflow) {
-                logger.error(`Could not find workflow '${step.workflow}' in config`)
-                continue
-            }
-
-            await runWorkflow(workflow, opts)
+        }
+        if (isResolvedWorflowStep(step)) {
+            await runWorkflow(step.workflow, opts)
 
             continue
         }

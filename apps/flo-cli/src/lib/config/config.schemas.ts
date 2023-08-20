@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { LogLevel } from '../logger.service'
 import { workflowSchema } from '../workflows/workflow.schemas'
 import { worktreeConfigSchema } from '../worktrees/worktree-config.schemas'
+import { DEFAULT_LOG_LEVEL } from './config.vars'
+import { validateWorkflows } from '../workflows/validate-workflows'
 
 export type ProjectConfig = z.infer<typeof projectConfigSchema>
 export const projectConfigSchema = worktreeConfigSchema
@@ -9,9 +11,11 @@ export const projectConfigSchema = worktreeConfigSchema
 export type BaseConfig = z.infer<typeof baseConfigSchema>
 export const baseConfigSchema = z.object({
     version: z.string(),
-    workflows: workflowSchema.array().optional(),
-    // @TODO: @floydnant implement log level config
-    logLevel: z.nativeEnum(LogLevel).optional(),
+    logLevel: z.nativeEnum(LogLevel).default(DEFAULT_LOG_LEVEL),
+    workflows: workflowSchema
+        .array()
+        .optional()
+        .refine(validateWorkflows, { message: 'Invalid workflow definition, see above.' }),
 })
 
 export type LocalConfig = z.infer<typeof localConfigSchema>

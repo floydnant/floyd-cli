@@ -16,19 +16,24 @@ const deleteWorktree = async (
     if (branch) {
         const worktree = getWorktreeFromBranch(branch, worktrees)
         if (worktree.isMainWorktree) {
-            console.log(`Cannot remove the main worktree in ${worktree.dir}`.red)
+            console.log(`Cannot remove the main worktree in ${worktree.directory}`.red)
             process.exit(1)
         }
 
         const { confirmed } = await prompts({
             type: 'confirm',
             name: 'confirmed',
-            message: 'Remove'.red + ` the worktree ${worktree.branch.green} in ${worktree.dir?.dim}?`,
+            message:
+                'Remove'.red +
+                ` the worktree in ${worktree.directory.yellow}${
+                    worktree.branch ? ` with checked out branch ${worktree.branch.green}` : ''
+                }?`,
         })
         if (!confirmed) return
 
-        exec(`git worktree remove ${opts.force ? '--force' : ''} ${worktree.dir}`)
+        exec(`git worktree remove ${opts.force ? '--force' : ''} ${worktree.directory}`)
 
+        if (!worktree.branch) return
         const { deleteBranch } =
             optsDelete ||
             (await prompts({
@@ -60,7 +65,12 @@ const deleteWorktree = async (
 
     const { deleteBranch } =
         optsDelete ||
-        (console.log(selectedTrees.map(tree => tree.branch.green).join('\n')),
+        (console.log(
+            selectedTrees
+                .map(tree => tree.branch && tree.branch.green)
+                .filter(Boolean)
+                .join('\n'),
+        ),
         await prompts({
             type: 'confirm',
             name: 'deleteBranch',
@@ -68,11 +78,11 @@ const deleteWorktree = async (
         }))
 
     selectedTrees.forEach(tree => {
-        console.log(`\nRemoving worktree ${tree.dir.yellow}...`.dim)
+        console.log(`\nRemoving worktree ${tree.directory.yellow}...`.dim)
 
-        exec(`git worktree remove ${opts.force ? '--force' : ''} ${tree.dir}`)
+        exec(`git worktree remove ${opts.force ? '--force' : ''} ${tree.directory}`)
 
-        if (deleteBranch) {
+        if (deleteBranch && tree.branch) {
             try {
                 exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${tree.branch}`)
             } catch (e) {

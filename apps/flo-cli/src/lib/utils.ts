@@ -6,6 +6,20 @@ import { Logger } from './logger.service'
 export const exec = (command: string, workingDir?: string) =>
     execSync(command, { stdio: 'inherit', cwd: workingDir })
 
+// This is random WIP btw, don't bother
+export class Exec {
+    static execSync(command: string, options: Parameters<typeof execSync>[1] = {}) {
+        Logger.getInstance().debug(`Executing: ${command.cyan}`)
+        return execSync(command, options)?.toString()
+    }
+
+    static exec(command: string, options: Parameters<typeof execSync>[1] = {}) {
+        Logger.getInstance().debug(`Executing: ${command.cyan}`)
+        return execSync(command, { stdio: 'inherit', ...options })?.toString()
+    }
+}
+
+// @TODO: this should be named `testCommand`
 export const test = (command: string) => {
     try {
         execSync(command, { stdio: 'ignore' })
@@ -64,3 +78,32 @@ export const getPaddedStr = (str: string, fillString = '-') => {
 }
 
 export const getRelativePathOf = (pathString: string) => path.relative(process.cwd(), pathString) || './'
+
+export const getFlags = (...argsArr: Record<string, string | number | boolean | undefined | null>[]) => {
+    const merged = argsArr.map(args => {
+        return Object.entries(args)
+            .map(([flag, value]) => {
+                const isFalsy = !value && typeof value != 'number'
+                return isFalsy ? '' : `${flag}${value === true ? '' : ' ' + value}`
+            })
+            .join(' ')
+    })
+
+    return merged.join(' ')
+}
+
+// @TODO: this belongs into a test file
+// const flags = getFlags(
+//     {
+//         '--oneline': true,
+//         '--graph': true,
+//         '--decorate': true,
+//         '--color': true,
+//         '-n': 5,
+//     },
+//     {
+//         '-n': 10,
+//     },
+// )
+// console.log(args({ '--some-flag': 'with stuff', '-c': false, '-m': true }))
+// console.log(flags)

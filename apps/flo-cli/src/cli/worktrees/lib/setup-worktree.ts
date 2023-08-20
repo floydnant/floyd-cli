@@ -20,6 +20,10 @@ export const setupWorktree = (opts: {
     existingWorktrees: Worktree[]
 }): Worktree => {
     const repoRootDir = getRepoRootDir()
+    if (!repoRootDir) {
+        Logger.getInstance().error('Not in a git repository')
+        process.exit(1)
+    }
     const repoFolderName = path.basename(repoRootDir)
 
     const getWorktreeName = () => {
@@ -56,7 +60,7 @@ export const setupWorktree = (opts: {
 
     return {
         branch: worktreeBranch,
-        dir: worktreePath,
+        directory: worktreePath,
         isMainWorktree: false,
         isCurrent: false,
     }

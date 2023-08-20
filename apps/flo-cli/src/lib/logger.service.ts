@@ -1,3 +1,5 @@
+import { DEFAULT_LOG_LEVEL } from './config/config.vars'
+
 export enum LogLevel {
     QUIET = 'quiet',
     ERROR = 'error',
@@ -8,39 +10,48 @@ export enum LogLevel {
 }
 
 export class Logger {
-    private static instance: Logger
-    private constructor(private logLevel: LogLevel) {}
+    private static logLevel = DEFAULT_LOG_LEVEL
 
-    static init(logLevel: LogLevel) {
-        Logger.instance = new Logger(logLevel)
-        return Logger.instance
+    static updateLogLevel(logLevel: LogLevel) {
+        Logger.logLevel = logLevel
+        return Logger
     }
 
-    static getInstance(): Logger {
-        if (!Logger.instance) throw new Error('Logger not initialized')
-
-        return Logger.instance
+    // just for migration purposes
+    static getInstance() {
+        return Logger
     }
 
-    error(message: string, ...args: unknown[]) {
+    // Sorry this is unreadable and uggly as hell, but idc rn
+
+    static error = ((message: string, ...args: unknown[]) => {
         if (
             [LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG, LogLevel.WARN, LogLevel.ERROR].includes(
-                this.logLevel,
+                Logger.logLevel,
             )
         )
             console.error(message.red, ...args)
-    }
-    warn(...args: unknown[]) {
-        if ([LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG, LogLevel.WARN].includes(this.logLevel))
+        return Logger
+    }).bind(Logger) as (message: string, ...agrs: unknown[]) => typeof Logger
+
+    static warn = ((...args: unknown[]) => {
+        if ([LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG, LogLevel.WARN].includes(Logger.logLevel))
             console.warn(...args)
-    }
-    log(...args: unknown[]) {
-        if ([LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG].includes(this.logLevel)) console.log(...args)
-    }
-    verbose(message: string, ...args: unknown[]) {
-        if ([LogLevel.DEBUG, LogLevel.VERBOSE].includes(this.logLevel)) console.log(message.dim, ...args)
-    }
-    debug(...args: unknown[]) {
-        if (LogLevel.DEBUG == this.logLevel) console.debug('DEBUG:'.bgYellow.black, ...args)
-    }
+        return Logger
+    }).bind(Logger) as (...agrs: unknown[]) => typeof Logger
+
+    static log = ((...args: unknown[]) => {
+        if ([LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG].includes(Logger.logLevel)) console.log(...args)
+        return Logger
+    }).bind(Logger) as (...agrs: unknown[]) => typeof Logger
+
+    static verbose = ((message: string, ...args: unknown[]) => {
+        if ([LogLevel.DEBUG, LogLevel.VERBOSE].includes(Logger.logLevel)) console.info(message.dim, ...args)
+        return Logger
+    }).bind(Logger) as (message: string, ...agrs: unknown[]) => typeof Logger
+
+    static debug = ((...args: unknown[]) => {
+        if (LogLevel.DEBUG == Logger.logLevel) console.debug('DEBUG:'.bgYellow.black, ...args)
+        return Logger
+    }).bind(Logger) as (...agrs: unknown[]) => typeof Logger
 }

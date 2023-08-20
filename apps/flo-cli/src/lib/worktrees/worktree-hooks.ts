@@ -7,7 +7,10 @@ import { WorktreeHook } from './worktree-config.schemas'
 
 export const getWorktreeHook = (hookId: WorktreeHook): Workflow | undefined => {
     const config = ConfigService.getInstance().config
-    const projectId = path.basename(getRepoRootDir())
+    const repoRoot = getRepoRootDir()
+    if (!repoRoot) return
+
+    const projectId = path.basename(repoRoot)
     const workflowId = config.projects?.[projectId]?.worktreeHooks?.[hookId]
     if (!workflowId) return
 

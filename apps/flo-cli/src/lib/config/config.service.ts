@@ -5,6 +5,9 @@ import { Config } from './config.schemas'
 import { readOrInitConfig } from './config.utils'
 import { globalPaths } from './config.vars'
 
+// @TODO: @floydnant we can read local configs easily by checking the current worktreeRoot for `.flo-cli/`
+// or fall back to manually traversing if no git repo is used
+
 export class ConfigService {
     private constructor() {
         const { config, rawConfigFile } = readOrInitConfig()
@@ -21,14 +24,14 @@ export class ConfigService {
     readonly config!: Config
     readonly rawConfigFile!: string
     private currentWorktree = GitRepository.getInstance().getCurrentWorktree()
-    readonly contextVariables = {
+    contextVariables = {
         ...globalPaths,
-        // localConfigRoot: localConfigFolder,
-        repoRoot: getRepoRootDir(),
-        worktreeRoot: this.currentWorktree?.dir || '<not-applicable>',
+        // localConfigRoot: localConfigFolder, // @TODO: @floydnant
+        repoRoot: getRepoRootDir() || '<$repoRoot_not_applicable>',
+        worktreeRoot: this.currentWorktree?.directory || '<$worktreeRoot_not_applicable>',
         cwd: process.cwd(),
         // will be overwritten at a later point when a worktree is created
-        newWorktreeRoot: this.currentWorktree?.dir || '<not-applicable>',
+        newWorktreeRoot: this.currentWorktree?.directory || '<$newWorktreeRoot_not_applicable>',
     }
 
     interpolateContextVars(contents: string) {

@@ -7,12 +7,11 @@
         "flo": "./bin/index.js"
     },
     "scripts": {
-        "prepare": "npm run build",
         "build": "nx build flo-cli",
-        "build:all": "nx run-many --target=build",
+        "dev": "nx build flo-cli --watch",
+        "build:all": "nx run-many --target=build --exclude=floyd-cli-root",
         "test:all": "nx run-many --target=test",
-        "lint:all": "nx run-many --target=lint --verbose",
-        "dev": "nx build flo-cli --watch"
+        "lint:all": "nx run-many --target=lint --verbose"
     },
     "author": "Floyd Haremsa",
     "license": "ISC",
