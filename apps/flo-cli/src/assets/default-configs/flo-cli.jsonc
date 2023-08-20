@@ -1,0 +1,110 @@
+{
+    "version": "$cliVersion",
+    "loglevel": "$defaultLogLevel",
+    "workflows": [
+        {
+            "name": "Welcome workflow",
+            "workflowId": "welcome",
+            "aliases": ["example"],
+            "description": "This greets you and demonstrates flo-cli's workflow usage",
+            "steps": [
+                {
+                    "name": "Greet user",
+                    "command": "echo 'Hey, how you doin? Got some example output right there!'",
+                    "cwd": "$repoRoot"
+                }
+            ]
+        },
+        {
+            // Yes, you can use comments here. Also, please don't mess with this workflow,
+            // otherwise you can't install updates anymore (it's actually your own problem, but I'm trying to help you).
+            "name": "Update floyd-cli",
+            "workflowId": "update",
+            "description": "Pulls changes and rebuilds flo-cli",
+            "steps": [
+                {
+                    "name": "Pull latest changes",
+                    "cwd": "$cliRoot",
+                    "command": "git pull --rebase"
+                },
+                {
+                    "name": "Install dependencies",
+                    "cwd": "$cliRoot",
+                    "command": "npm i"
+                },
+                {
+                    "name": "Rebuild floyd-cli",
+                    "cwd": "$cliRoot",
+                    "command": "npm run build"
+                },
+                {
+                    "workflowId": "welcome"
+                }
+            ]
+        },
+        {
+            "name": "Open work apps",
+            "workflowId": "open-work-apps",
+            "aliases": ["owok"],
+            // Only applies to macOS btw, come up with your own otherwise
+            "steps": [
+                {
+                    "name": "Open Slack",
+                    "command": "open -a slack.app"
+                },
+                {
+                    "name": "Open Teams",
+                    "command": "open -a 'microsoft teams.app'"
+                },
+                {
+                    "name": "Open Outlook",
+                    "command": "open -a 'microsoft outlook.app'"
+                }
+            ]
+        },
+        {
+            "name": "Close work apps",
+            "workflowId": "close-work-apps",
+            "aliases": ["clwok"],
+            // Also only applies to macOS
+            "steps": [
+                {
+                    "name": "Open Slack",
+                    "command": "osascript -e 'quit app \"slack.app\"'"
+                },
+                {
+                    "name": "Open Teams",
+                    "command": "osascript -e 'quit app \"microsoft teams.app\"'"
+                },
+                {
+                    "name": "Open Outlook",
+                    "command": "osascript -e 'quit app \"microsoft outlook.app\"'"
+                }
+            ]
+        },
+        {
+            "name": "Setup floyd-cli worktree",
+            "workflowId": "prepare-floyd-cli-worktree",
+            "steps": [
+                {
+                    "name": "Copy environment variables",
+                    "copyFrom": "$repoRoot/.env",
+                    "to": "$newWorktreeRoot/.env"
+                },
+                {
+                    "command": "npm i",
+                    "cwd": "$newWorktreeRoot"
+                }
+            ]
+        }
+    ],
+    "projects": {
+        "floyd-cli": {
+            "root": "$cliRoot",
+            "worktreeHooks": {
+                "onCreate": "prepare-floyd-cli-worktree",
+                "onSwitch": "welcome"
+            }
+        }
+    }
+}

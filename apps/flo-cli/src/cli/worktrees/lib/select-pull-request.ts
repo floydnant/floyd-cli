@@ -1,7 +1,7 @@
 import prompts from 'prompts'
 import { Worktree, getBranchWorktreeString } from '../../../adapters/git'
 import { PullRequest } from '../../../adapters/github'
-import { Logger } from '../../../lib/logger'
+import { Logger } from '../../../lib/logger.service'
 
 export const selectPullRequest = async (
     worktrees: Worktree[],

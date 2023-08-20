@@ -3,11 +3,16 @@ import path from 'path'
 import prompts from 'prompts'
 import { createBranch, getBranches, getWorktrees, gitFetch } from '../../adapters/git'
 import { getOpenPullRequests, getPullRequest } from '../../adapters/github'
-import { Logger } from '../../lib/logger'
+import { ConfigService } from '../../lib/config/config.service'
+import { Logger } from '../../lib/logger.service'
 import { assertGitHubInstalled, openWithVscode } from '../../lib/utils'
+import { runWorkflow } from '../../lib/workflows/run-workflow'
+import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
 import { selectBranch } from './lib/select-branch'
 import { selectPullRequest } from './lib/select-pull-request'
 import { setupWorktree } from './lib/setup-worktree'
+import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
+import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 
 const createWorktree = async (
     branch_: string | undefined,
@@ -72,7 +77,7 @@ const createWorktree = async (
     const checkedOutWorktree = worktrees.find(worktree => worktree.branch == branch)
     if (checkedOutWorktree) {
         logger.error(
-            `The branch ${branch.green} is already checked out in `.red + checkedOutWorktree.dir.yellow,
+            `The branch ${branch.green} is already checked out in `.red + checkedOutWorktree.directory.yellow,
         )
         process.exit(1)
     }
@@ -93,12 +98,16 @@ const createWorktree = async (
         branchToCheckout: branch,
     })
 
+    const workflow = getWorktreeHook(WorktreeHook.OnCreate)
+    ConfigService.getInstance().contextVariables.newWorktreeRoot = worktree.directory
+    if (workflow) await runWorkflow(resolveWorkflow(workflow))
+
     logger.log()
-    const folderPath = path.join(worktree.dir, opts.subDir || '')
+    const folderPath = path.join(worktree.directory, opts.subDir || '')
     const { next }: { next?: () => void } = await prompts({
         type: 'select',
         name: 'next',
-        message: 'What next?',
+        message: 'Your worktree is ready! What next?',
 
         choices: [
             {
@@ -131,6 +140,7 @@ export const createWorktreeCommand = new Command()
         `--dir, --directory <path>`,
         'create the worktree in a custom directory (will take precedence over --use-branch)',
     )
+    // @TODO: @floydnant there should be a `skip-hooks` option
     .option(`--ub, --use-branch`, 'use branch name as directory for the worktree', false)
     .option('-r, --remote <remote>', 'which remote to fetch from')
     .option('--pr, --pull-request [number]', 'create a worktree from a pull request')

@@ -3,23 +3,42 @@ import path from 'path'
 import { getWorktreeFromBranch, getWorktrees } from '../../adapters/git'
 import { openWithVscode } from '../../lib/utils'
 import { selectWorktrees } from './lib/select-worktrees'
+import { ConfigService } from '../../lib/config/config.service'
+import { runWorkflow } from '../../lib/workflows/run-workflow'
+import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
+import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
+import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 
-const openWorktree = async (opts: { branch: string | undefined, newWindow?: boolean; subDir?: string }) => {
+// @TODO: @floydnant we should be able to checkout a new branch/PR from here
+const openWorktree = async (opts: { branch: string | undefined; newWindow?: boolean; subDir?: string }) => {
     const openOpts = { reuse: !opts.newWindow }
     const worktrees = getWorktrees()
+    const workflow = getWorktreeHook(WorktreeHook.OnSwitch)
 
     if (opts.branch) {
         const worktree = getWorktreeFromBranch(opts.branch, worktrees)
-        const folderPath = path.join(worktree.dir, opts.subDir || '')
+        const folderPath = path.join(worktree.directory, opts.subDir || '')
+
+        if (workflow) {
+            ConfigService.getInstance().contextVariables.newWorktreeRoot = worktree.directory
+            await runWorkflow(resolveWorkflow(workflow))
+        }
+
         openWithVscode(folderPath, openOpts)
         return
     }
 
     const selectedWorktrees = await selectWorktrees(worktrees, { multiple: false })
     if (!selectedWorktrees?.length) return
-
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const folderPath = path.join(selectedWorktrees[0]!.dir, opts.subDir || '')
+    const worktree = selectedWorktrees[0]!
+
+    if (workflow) {
+        ConfigService.getInstance().contextVariables.newWorktreeRoot = worktree.directory
+        await runWorkflow(resolveWorkflow(workflow))
+    }
+
+    const folderPath = path.join(worktree.directory, opts.subDir || '')
     openWithVscode(folderPath, openOpts)
 }
 

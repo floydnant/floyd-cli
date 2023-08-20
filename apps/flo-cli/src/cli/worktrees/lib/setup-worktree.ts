@@ -7,7 +7,7 @@ import {
     gitCheckout,
     getCurrentBranch,
 } from '../../../adapters/git'
-import { Logger } from '../../../lib/logger'
+import { Logger } from '../../../lib/logger.service'
 import { assertGitHubInstalled, exec } from '../../../lib/utils'
 
 export const setupWorktree = (opts: {
@@ -20,6 +20,10 @@ export const setupWorktree = (opts: {
     existingWorktrees: Worktree[]
 }): Worktree => {
     const repoRootDir = getRepoRootDir()
+    if (!repoRootDir) {
+        Logger.getInstance().error('Not in a git repository')
+        process.exit(1)
+    }
     const repoFolderName = path.basename(repoRootDir)
 
     const getWorktreeName = () => {
@@ -56,7 +60,8 @@ export const setupWorktree = (opts: {
 
     return {
         branch: worktreeBranch,
-        dir: worktreePath,
+        directory: worktreePath,
         isMainWorktree: false,
+        isCurrent: false,
     }
 }

@@ -1,5 +1,14 @@
 export interface Worktree {
-    dir: string
-    branch: string
+    directory: string
     isMainWorktree: boolean
+    isCurrent: boolean
+
+    branch?: string
+    head?: string
+    isDetached?: boolean
+    isLocked?: boolean
+    lockReason?: string
+    isPrunable?: boolean
+    prunableReason?: string
+    isBare?: boolean
 }

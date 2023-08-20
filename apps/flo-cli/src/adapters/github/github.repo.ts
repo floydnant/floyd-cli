@@ -2,7 +2,7 @@ import { execSync } from 'child_process'
 import { exec } from '../../lib/utils'
 import { PullRequest, PullRequestWithChecks, Run } from './github.model'
 import { MaskOf } from '@flo/common'
-import { Logger } from '../../lib/logger'
+import { Logger } from '../../lib/logger.service'
 
 const getFieldSelector = <TMask extends MaskOf<PullRequest>>(mask: TMask) => {
     const keys = Object.entries(mask)
