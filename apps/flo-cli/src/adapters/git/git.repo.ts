@@ -128,7 +128,7 @@ export const getWorktrees = handleGitErrors(
     },
 )
 
-const getCacheKey = (stuff: object | undefined) => JSON.stringify(stuff || '{}')
+const getCacheKey = (stuff: object | undefined) => JSON.stringify(stuff || {})
 
 export class GitRepository {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
