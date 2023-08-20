@@ -153,13 +153,6 @@ flo config
 flo config edit
 ```
 
-<!-- @TODO: @floydnant implement this
-```bash
-# Do a semantic validation of the config file (because we only run the syntactic validation on CLI invocation)
-flo config validate
-```
--->
-
 ## Global configuration
 
 Docs WIP - have a look at the [default configuration](./apps/flo-cli/src/assets/default-configs/flo-cli.jsonc) or run the edit command above to take a look at your own.
