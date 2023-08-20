@@ -189,7 +189,7 @@ Or let them run automatically with [worktree hooks](#hooks).
 
 ## Workflow Definition Reference
 
-```json
+```jsonc
 {
     // A string without spaces, you're calling the workflow with (or for
     // referencing in other places of the config like worktree hooks)
@@ -207,7 +207,7 @@ Or let them run automatically with [worktree hooks](#hooks).
 
 ## Step Definition Reference
 
-```json
+```jsonc
 {
     // An optional name for the step
     "name": "[the name]",
@@ -235,7 +235,7 @@ Sometimes you don't have the appropriate values available at compile time, so yo
 
 Only supports files for now.
 
-```json
+```jsonc
 {
     "copyFrom": "<path>",
     "to": "<path>"
@@ -244,7 +244,7 @@ Only supports files for now.
 
 ### Command Step
 
-```json
+```jsonc
 {
     "command": "<command>",
 
@@ -256,7 +256,7 @@ Only supports files for now.
 
 ### Workflow Step
 
-```json
+```jsonc
 {
     // The ID of another workflow to run as a step
     "workflowId": "<workflowId>",
