@@ -14,7 +14,7 @@ export const selectWorktrees = async (
         name: 'trees',
         message: message || defaultMessage,
         choices: worktrees.map(tree => ({
-            title: getWorktreeDisplayStr(tree, !!getGitStatus(tree.dir)),
+            title: getWorktreeDisplayStr(tree, !!getGitStatus(tree.directory)),
             value: tree,
         })),
         instructions: false,

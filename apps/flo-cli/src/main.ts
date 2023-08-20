@@ -9,8 +9,8 @@ import { configCommand } from './cli/config'
 import { timeCommand } from './cli/time-tracking'
 import { runCommand } from './cli/workflows'
 import { worktreesCommand } from './cli/worktrees'
-import { LogLevel, Logger } from './lib/logger'
-import { DEFAULT_LOG_LEVEL } from './lib/config'
+import { ConfigService } from './lib/config/config.service'
+import { LogLevel, Logger } from './lib/logger.service'
 
 const cli = new Command()
 
@@ -25,9 +25,11 @@ cli.addCommand(timeCommand)
 
 cli.option('--debug', 'enable debug logging', false)
 cli.hook('preAction', thisCommand => {
-    const logLevel = thisCommand.opts()['debug'] ? LogLevel.DEBUG : DEFAULT_LOG_LEVEL
-    const logger = Logger.init(logLevel)
-    if (logLevel == LogLevel.DEBUG) logger.log('Debug logging enabled')
+    const logLevel = thisCommand.opts()['debug']
+        ? LogLevel.DEBUG
+        : ConfigService.getInstance().config.logLevel
+    const logger = Logger.updateLogLevel(logLevel)
+    logger.debug('Debug logging enabled')
 })
 
 cli.parse(process.argv)

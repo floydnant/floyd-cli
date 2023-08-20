@@ -1,4 +1,0 @@
-{
-    ".prettierrc": "./prettier.json",
-    "tsconfig.json": "./tsconfig.json"
-}
