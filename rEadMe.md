@@ -28,6 +28,7 @@ A cli for automating and simplifying common tasks such as
     - [Copy File Step](#copy-file-step)
     - [Command Step](#command-step)
     - [Workflow Step](#workflow-step)
+    - [Symlink Step - Coming soon!](#symlink-step---coming-soon)
     - [NPM Step - Coming soon!](#npm-step---coming-soon)
 - [TODO](#todo)
   - [Docs](#docs)
@@ -193,7 +194,7 @@ Or let them run automatically with [worktree hooks](#hooks).
 {
     // A string without spaces, you're calling the workflow with (or for
     // referencing in other places of the config like worktree hooks)
-    "workflowId:": "<id>",
+    "workflowId": "<id>",
 
     // An optional name and description of the workflow
     "name": "[name]",
@@ -210,7 +211,7 @@ Or let them run automatically with [worktree hooks](#hooks).
 ```jsonc
 {
     // An optional name for the step
-    "name": "[the name]",
+    "name": "[the name]", // is the Primagen
 
     ...step // rest of the step, more below
 }
@@ -266,6 +267,10 @@ Only supports files for now.
     "cwd": "[path]"
 }
 ```
+
+### Symlink Step - Comming soon!
+
+Symlink directories or files instead of copying them
 
 ### NPM Step - Coming soon!
 
