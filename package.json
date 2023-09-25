@@ -26,7 +26,7 @@
         "zod": "^3.21.4"
     },
     "devDependencies": {
-        "@nx/esbuild": "^16.5.5",
+        "@nx/esbuild": "^16.9.0",
         "@nx/eslint-plugin": "16.5.5",
         "@nx/jest": "16.5.5",
         "@nx/js": "^16.7.2",
