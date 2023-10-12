@@ -2,6 +2,7 @@ import { Logger } from '../logger.service'
 import { Workflow } from './workflow.schemas'
 import { isWorflowStep } from './workflow.utils'
 
+// @TODO: worktree hooks need to be validated too
 export const validateWorkflows = (workflows: Workflow[] | undefined) => {
     const logger = Logger.getInstance()
     let isValid = true

@@ -11,6 +11,7 @@ import { runCommand } from './cli/workflows'
 import { worktreesCommand } from './cli/worktrees'
 import { ConfigService } from './lib/config/config.service'
 import { LogLevel, Logger } from './lib/logger.service'
+import { projectsCommand } from './cli/projects'
 
 const cli = new Command()
 
@@ -22,6 +23,7 @@ cli.addCommand(runCommand)
 cli.addCommand(worktreesCommand)
 cli.addCommand(checksCommand)
 cli.addCommand(timeCommand)
+cli.addCommand(projectsCommand)
 
 cli.option('--debug', 'enable debug logging', false)
 cli.hook('preAction', thisCommand => {

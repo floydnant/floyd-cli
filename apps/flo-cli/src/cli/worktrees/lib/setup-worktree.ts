@@ -1,11 +1,11 @@
 import path from 'path'
 import {
+    GitRepository,
     Worktree,
-    getRepoRootDir,
-    getNextWorktreeName,
     deleteBranch,
-    gitCheckout,
     getCurrentBranch,
+    getNextWorktreeName,
+    gitCheckout,
 } from '../../../adapters/git'
 import { Logger } from '../../../lib/logger.service'
 import { assertGitHubInstalled, exec } from '../../../lib/utils'
@@ -19,7 +19,7 @@ export const setupWorktree = (opts: {
     pullRequestToCheckout?: string
     existingWorktrees: Worktree[]
 }): Worktree => {
-    const repoRootDir = getRepoRootDir()
+    const repoRootDir = GitRepository.getInstance().getRepoRootDir()
     if (!repoRootDir) {
         Logger.getInstance().error('Not in a git repository')
         process.exit(1)

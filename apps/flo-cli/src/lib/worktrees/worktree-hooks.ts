@@ -1,5 +1,5 @@
 import path from 'path'
-import { getRepoRootDir } from '../../adapters/git'
+import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../config/config.service'
 import { Logger } from '../logger.service'
 import { Workflow } from '../workflows/workflow.schemas'
@@ -7,7 +7,7 @@ import { WorktreeHook } from './worktree-config.schemas'
 
 export const getWorktreeHook = (hookId: WorktreeHook): Workflow | undefined => {
     const config = ConfigService.getInstance().config
-    const repoRoot = getRepoRootDir()
+    const repoRoot = GitRepository.getInstance().getRepoRootDir()
     if (!repoRoot) return
 
     const projectId = path.basename(repoRoot)

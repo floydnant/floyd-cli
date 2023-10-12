@@ -86,7 +86,7 @@ export const getWorktrees = handleGitErrors(
     (options?: GetWorktreesOptions): Worktree[] => {
         const output = execSync('git worktree list --porcelain', options).toString().trim()
         const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
-        const repoRootDir = getRepoRootDir()
+        const repoRootDir = GitRepository.getInstance().getRepoRootDir(options?.cwd)
         const cwd = process.cwd()
 
         const worktrees = worktreeTextBlocks.map(block => {
@@ -108,7 +108,6 @@ export const getWorktrees = handleGitErrors(
                 console.log(`Couldn't match a directory in:\n${block}`.red)
                 process.exit(1)
             }
-
             return {
                 directory,
                 branch: branch && fixBranchName(branch),
@@ -152,8 +151,22 @@ export class GitRepository {
         return this.getWorktrees().find(tree => tree.isCurrent)
     }
 
-    getRepoRootDir() {
-        return getRepoRootDir()
+    private repoRootDirCache: { [key: string]: string | null } = {}
+    getRepoRootDir(cwd = process.cwd()): string | null {
+        const cacheKey = cwd
+        if (!this.repoRootDirCache[cacheKey]) this.repoRootDirCache[cacheKey] = getRepoRootDir(cwd)
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return this.repoRootDirCache[cacheKey]!
+    }
+
+    private gitStatusCache: { [key: string]: string | null } = {}
+    getGitStatus(cwd = process.cwd()): string | null {
+        const cacheKey = cwd
+        if (!this.gitStatusCache[cacheKey]) this.gitStatusCache[cacheKey] = getGitStatus(cwd)
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return this.gitStatusCache[cacheKey]!
     }
 }
 
@@ -162,10 +175,10 @@ export const getCommitLogs = (dir?: string, limit?: number) => {
     return execSync(cmd, { cwd: dir }).toString()
 }
 
-export const getRepoRootDir = handleGitErrors({ fallbackValue: null }, () => {
-    const gitDir = execSync('git rev-parse --git-dir').toString().trim()
+const getRepoRootDir = handleGitErrors({ fallbackValue: null }, (cwd: string = process.cwd()) => {
+    const gitDir = execSync('git rev-parse --git-dir', { cwd }).toString().trim()
     const isAbsolute = path.isAbsolute(gitDir)
-    const joined = path.join(process.cwd(), gitDir)
+    const joined = path.join(cwd, gitDir)
     const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
 
     return resolved

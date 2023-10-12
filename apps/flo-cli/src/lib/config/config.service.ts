@@ -1,6 +1,6 @@
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { interpolateVariables } from '../../../../../packages/common/src'
-import { GitRepository, getRepoRootDir } from '../../adapters/git'
+import { GitRepository } from '../../adapters/git'
 import { Config } from './config.schemas'
 import { readOrInitConfig } from './config.utils'
 import { globalPaths } from './config.vars'
@@ -27,12 +27,17 @@ export class ConfigService {
     contextVariables = {
         ...globalPaths,
         // localConfigRoot: localConfigFolder, // @TODO: @floydnant
-        repoRoot: getRepoRootDir() || '<$repoRoot_not_applicable>',
+        repoRoot: GitRepository.getInstance().getRepoRootDir() || '<$repoRoot_not_applicable>',
         worktreeRoot: this.currentWorktree?.directory || '<$worktreeRoot_not_applicable>',
         cwd: process.cwd(),
         // will be overwritten at a later point when a worktree is created
         newWorktreeRoot: this.currentWorktree?.directory || '<$newWorktreeRoot_not_applicable>',
     }
+
+    // @TODO: Come up with a way to update config files without
+    // - overwriting comments
+    // - mixing up the order of the keys
+    // - mixing up local and global config
 
     interpolateContextVars(contents: string) {
         const contextVariables = this.contextVariables

@@ -6,7 +6,7 @@ import { DEFAULT_LOG_LEVEL } from './config.vars'
 import { validateWorkflows } from '../workflows/validate-workflows'
 
 export type ProjectConfig = z.infer<typeof projectConfigSchema>
-export const projectConfigSchema = worktreeConfigSchema
+export const projectConfigSchema = z.object({ root: z.string() }).merge(worktreeConfigSchema)
 
 export type BaseConfig = z.infer<typeof baseConfigSchema>
 export const baseConfigSchema = z.object({
@@ -19,11 +19,13 @@ export const baseConfigSchema = z.object({
 })
 
 export type LocalConfig = z.infer<typeof localConfigSchema>
-export const localConfigSchema = baseConfigSchema.merge(projectConfigSchema)
+export const localConfigSchema = baseConfigSchema.merge(projectConfigSchema.omit({ root: true }))
 
 export type GlobalConfig = z.infer<typeof globalConfigSchema>
+
+export const PROJECTS_CONFIG_KEY = 'projects'
 export const globalConfigSchema = baseConfigSchema.extend({
-    projects: z.record(z.string(), projectConfigSchema).optional(),
+    [PROJECTS_CONFIG_KEY]: z.record(z.string(), projectConfigSchema).optional(),
 })
 
 export type Config = z.infer<typeof configSchema>
