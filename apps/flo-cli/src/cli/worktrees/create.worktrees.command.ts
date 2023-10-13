@@ -112,7 +112,7 @@ const createWorktree = async (
         choices: [
             {
                 title: 'Open worktree in VSCode (reuse window)',
-                value: () => openWithVscode(folderPath, { reuse: true }),
+                value: () => openWithVscode(folderPath, { reuseWindow: true }),
             },
             {
                 title: 'Open worktree in VSCode (new window)',

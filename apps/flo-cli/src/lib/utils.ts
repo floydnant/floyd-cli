@@ -46,13 +46,13 @@ export const assertCodeInstalled = () => {
     Logger.getInstance().error('Please install vscode cli `code`'.red)
     process.exit(1)
 }
-export const openWithVscode = (directory: string, opts?: { reuse?: boolean }) => {
+export const openWithVscode = (directory: string, opts?: { reuseWindow?: boolean }) => {
     assertCodeInstalled()
 
     Logger.getInstance().log(
-        `Opening ${directory.yellow} ${opts?.reuse ? 'in same window' : 'in new window'}...`.dim,
+        `Opening ${directory.yellow} ${opts?.reuseWindow ? 'in same window' : 'in new window'}...`.dim,
     )
-    exec(`code ${opts?.reuse ? '--reuse-window' : ''} ${directory}`)
+    exec(`code ${opts?.reuseWindow ? '--reuse-window' : ''} ${directory}`)
 }
 
 export const isNvimInstalled = () => test('nvim --version')

@@ -11,7 +11,7 @@ import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 
 // @TODO: @floydnant we should be able to checkout a new branch/PR from here
 const openWorktree = async (opts: { branch: string | undefined; newWindow?: boolean; subDir?: string }) => {
-    const openOpts = { reuse: !opts.newWindow }
+    const openOpts = { reuseWindow: !opts.newWindow }
     const worktrees = getWorktrees()
     const workflow = getWorktreeHook(WorktreeHook.OnSwitch)
 

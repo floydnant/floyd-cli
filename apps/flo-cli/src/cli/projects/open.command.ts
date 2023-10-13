@@ -11,9 +11,10 @@ export const openCommand = new Command()
     .createCommand('open')
     .description('Open project')
     .alias('o')
+    .option('-r, --reuse-window', 'Reuse existing VSCode window', false)
     // @TODO:
     // .argument('[project-or-alias]', 'The projectId or alias')
-    .action(async () => {
+    .action(async ({ reuseWindow }: { reuseWindow: boolean }) => {
         const projectMap = ConfigService.getInstance().config.projects
         if (!projectMap || Object.keys(projectMap).length == 0) {
             Logger.error('No projects configured')
@@ -27,7 +28,7 @@ export const openCommand = new Command()
         if (!selectedProject) return
 
         if (selectedProject.worktrees.length == 1) {
-            openWithVscode(selectedProject.projectConfig.root)
+            openWithVscode(selectedProject.projectConfig.root, { reuseWindow })
             return
         }
 
@@ -37,5 +38,5 @@ export const openCommand = new Command()
         })
         if (!result?.[0]) return
 
-        openWithVscode(result[0].directory)
+        openWithVscode(result[0].directory, { reuseWindow })
     })
