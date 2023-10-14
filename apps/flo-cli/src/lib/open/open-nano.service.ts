@@ -1,9 +1,9 @@
-import { ExecutionService } from '../exec.service'
+import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenPort, OpenType } from './open.types'
 
 export class OpenNanoService implements OpenPort {
-    constructor(private exec: ExecutionService) {}
+    constructor(private sysCallService: SysCallService) {}
 
     name = OpenType.Nano
     isReuseWindowSupported = false
@@ -14,10 +14,10 @@ export class OpenNanoService implements OpenPort {
         if (options.reuseWindow) Logger.getInstance().warn('Reusing windows is not supported with nano.')
 
         Logger.getInstance().log(`Opening ${directory.yellow} with nano...`.dim)
-        this.exec.exec(`nano ${directory}`)
+        this.sysCallService.exec(`nano ${directory}`)
     }
 
-    isInstalled = () => this.exec.testCommand('nano --version')
+    isInstalled = () => this.sysCallService.testCommand('nano --version')
     assertInstalled() {
         if (this.isInstalled()) return
 

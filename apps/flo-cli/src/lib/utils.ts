@@ -1,22 +1,5 @@
-import { execSync } from 'child_process'
 import 'colors'
 import path from 'path'
-import { Logger } from './logger.service'
-import { ExecutionService } from './exec.service'
-
-export const exec = (command: string, workingDir?: string) =>
-    execSync(command, { stdio: 'inherit', cwd: workingDir })
-
-export const assertGitHubInstalled = () => {
-    const exec = ExecutionService.getInstance()
-    if (exec.testCommand('gh --version')) return
-
-    Logger.getInstance().error(
-        'Please install gh cli with `brew install gh` or go here: https://cli.github.com/manual/installation'
-            .red,
-    )
-    process.exit(1)
-}
 
 export const isSubDir = (dir: string, parentDir: string) => {
     const relative = path.relative(parentDir, dir)

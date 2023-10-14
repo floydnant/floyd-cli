@@ -1,9 +1,9 @@
-import { ExecutionService } from '../exec.service'
+import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenPort, OpenType } from './open.types'
 
 export class OpenVscodeService implements OpenPort {
-    constructor(private exec: ExecutionService) {}
+    constructor(private sysCallService: SysCallService) {}
 
     name = OpenType.Vscode
     isReuseWindowSupported = true
@@ -14,10 +14,10 @@ export class OpenVscodeService implements OpenPort {
         Logger.getInstance().log(
             `Opening ${directory.yellow} in ${options?.reuseWindow ? 'same' : 'new'} vscode window...`.dim,
         )
-        this.exec.exec(`code ${options?.reuseWindow ? '--reuse-window' : ''} ${directory}`)
+        this.sysCallService.exec(`code ${options?.reuseWindow ? '--reuse-window' : ''} ${directory}`)
     }
 
-    isInstalled = () => this.exec.testCommand('code --version')
+    isInstalled = () => this.sysCallService.testCommand('code --version')
     assertInstalled() {
         if (this.isInstalled()) return
 

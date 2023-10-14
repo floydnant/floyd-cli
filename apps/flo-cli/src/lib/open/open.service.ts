@@ -1,4 +1,4 @@
-import { ExecutionService } from '../exec.service'
+import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenDefaultService } from './open-default.service'
 import { OpenNanoService } from './open-nano.service'
@@ -23,21 +23,21 @@ const openServiceMap: Record<OpenType, OpenServiceConstructor> = {
 
 export class OpenService {
     /** Do not use this constructor directly, use `OpenService.init()` instead */
-    constructor(private exec: ExecutionService) {}
+    constructor(private sysCallService: SysCallService) {}
 
     use(openType: OpenType) {
-        const openService = new openServiceMap[openType](this.exec)
+        const openService = new openServiceMap[openType](this.sysCallService)
         if (openService.isInstalled()) return openService
 
         Logger.log(`App ${openType.cyan} not installed, falling back to default`)
-        return new openServiceMap[OpenType.Default](this.exec)
+        return new openServiceMap[OpenType.Default](this.sysCallService)
     }
 
     useFirst(...prioritizedOpenTypes: OpenType[]) {
         const openTypes = new Set([...prioritizedOpenTypes, ...Object.values(OpenType)])
 
         for (const openType of openTypes) {
-            const openService = new openServiceMap[openType](this.exec)
+            const openService = new openServiceMap[openType](this.sysCallService)
             if (!openService.isInstalled()) continue
 
             return openService

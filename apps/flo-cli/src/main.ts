@@ -12,7 +12,7 @@ import { worktreesCommand } from './cli/worktrees'
 import { ConfigService } from './lib/config/config.service'
 import { LogLevel, Logger } from './lib/logger.service'
 import { projectsCommand } from './cli/projects'
-import { ExecutionService } from './lib/exec.service'
+import { SysCallService } from './lib/sys-call.service'
 import { GitRepository } from './adapters/git'
 
 const cli = new Command()
@@ -29,8 +29,8 @@ cli.addCommand(projectsCommand)
 
 cli.option('--debug', 'enable debug logging', false)
 cli.hook('preAction', thisCommand => {
-    const execService = ExecutionService.getInstance()
-    const gitRepo = GitRepository.init(execService)
+    const sysCallService = SysCallService.getInstance()
+    const gitRepo = GitRepository.init(sysCallService)
     const configService = ConfigService.init(gitRepo)
 
     const logLevel = thisCommand.opts()['debug'] ? LogLevel.DEBUG : configService.config.logLevel

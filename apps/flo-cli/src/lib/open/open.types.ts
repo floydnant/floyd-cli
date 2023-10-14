@@ -1,4 +1,4 @@
-import { ExecutionService } from '../exec.service'
+import { SysCallService } from '../sys-call.service'
 import { InstalledCommandPort } from './open.service'
 
 export interface OpenPort extends InstalledCommandPort {
@@ -7,7 +7,7 @@ export interface OpenPort extends InstalledCommandPort {
     isReuseWindowSupported: boolean
 }
 
-export type OpenServiceConstructor = new (exec: ExecutionService) => OpenPort
+export type OpenServiceConstructor = new (sysCallService: SysCallService) => OpenPort
 
 export enum OpenType {
     Vscode = 'vscode',

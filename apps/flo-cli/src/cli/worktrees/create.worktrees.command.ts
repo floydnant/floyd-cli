@@ -2,14 +2,12 @@ import '@total-typescript/ts-reset'
 import { Command } from 'commander'
 import path from 'path'
 import prompts from 'prompts'
-import { GitRepository } from '../../adapters/git'
+import { GitRepository, assertGitHubInstalled } from '../../adapters/git'
 import { getOpenPullRequests, getPullRequest } from '../../adapters/github'
 import { ConfigService } from '../../lib/config/config.service'
-import { ExecutionService } from '../../lib/exec.service'
 import { Logger } from '../../lib/logger.service'
 import { OpenService } from '../../lib/open/open.service'
 import { OpenType } from '../../lib/open/open.types'
-import { assertGitHubInstalled } from '../../lib/utils'
 import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 import { runWorkflow } from '../../lib/workflows/run-workflow'
 import { selectBranch } from '../../lib/worktrees/select-branch'
@@ -17,6 +15,7 @@ import { selectPullRequest } from '../../lib/worktrees/select-pull-request'
 import { setupWorktree } from '../../lib/worktrees/setup-worktree'
 import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
 import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
+import { SysCallService } from '../../lib/sys-call.service'
 
 const createWorktree = async (
     branch_: string | undefined,
@@ -33,7 +32,7 @@ const createWorktree = async (
 ) => {
     const gitRepo = GitRepository.getInstance()
     const configService = ConfigService.getInstance()
-    const openService = new OpenService(ExecutionService.getInstance()).useFirst(OpenType.Vscode)
+    const openService = new OpenService(SysCallService.getInstance()).useFirst(OpenType.Vscode)
 
     const worktrees = gitRepo.getWorktrees()
     const useRemoteBranches = !!opts.upstreamBranch || !!opts.pullRequest

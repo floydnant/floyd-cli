@@ -1,17 +1,18 @@
 import { Command } from 'commander'
 import prompts from 'prompts'
 import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
-import { exec } from '../../lib/utils'
 import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
 import { Logger } from '../../lib/logger.service'
+import { SysCallService } from '../../lib/sys-call.service'
 
 const deleteWorktree = async (
     branch: string | undefined,
     opts: { force?: boolean; deleteBranch?: boolean; forceDeleteBranch?: boolean },
 ) => {
-        const gitRepo = GitRepository.getInstance()
-        
-        const worktrees = gitRepo.getWorktrees()
+    const gitRepo = GitRepository.getInstance()
+    const sysCallService = SysCallService.getInstance()
+
+    const worktrees = gitRepo.getWorktrees()
     const optsDelete = (opts.deleteBranch || opts.forceDeleteBranch) && { deleteBranch: true }
 
     if (branch) {
@@ -32,7 +33,7 @@ const deleteWorktree = async (
         })
         if (!confirmed) return
 
-        exec(`git worktree remove ${opts.force ? '--force' : ''} ${worktree.directory}`)
+        sysCallService.exec(`git worktree remove ${opts.force ? '--force' : ''} ${worktree.directory}`)
 
         if (!worktree.branch) return
         const { deleteBranch } =
@@ -45,10 +46,10 @@ const deleteWorktree = async (
         if (!deleteBranch) return
 
         try {
-            exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${worktree.branch}`)
+            sysCallService.exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${worktree.branch}`)
         } catch (e) {
-                Logger.debug(e)
-                Logger.error(`Failed to delete branch ${branch}`)
+            Logger.debug(e)
+            Logger.error(`Failed to delete branch ${branch}`)
         }
         return
     }
@@ -75,22 +76,20 @@ const deleteWorktree = async (
         await prompts({
             type: 'confirm',
             name: 'deleteBranch',
-                message: `${'Delete'.red} ${
-                    selectedTrees.length > 1 ? 'these branches' : 'this branch'
-                } too?`,
+            message: `${'Delete'.red} ${selectedTrees.length > 1 ? 'these branches' : 'this branch'} too?`,
         }))
 
     selectedTrees.forEach(tree => {
         console.log(`\nRemoving worktree ${tree.directory.yellow}...`.dim)
 
-        exec(`git worktree remove ${opts.force ? '--force' : ''} ${tree.directory}`)
+        sysCallService.exec(`git worktree remove ${opts.force ? '--force' : ''} ${tree.directory}`)
 
         if (deleteBranch && tree.branch) {
             try {
-                exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${tree.branch}`)
+                sysCallService.exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${tree.branch}`)
             } catch (e) {
-                    Logger.debug(e)
-                    Logger.error(`Failed to delete branch ${tree.branch}`)
+                Logger.debug(e)
+                Logger.error(`Failed to delete branch ${tree.branch}`)
             }
         }
     })

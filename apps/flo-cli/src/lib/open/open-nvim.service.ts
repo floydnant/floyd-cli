@@ -1,9 +1,9 @@
-import { ExecutionService } from '../exec.service'
+import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenPort, OpenType } from './open.types'
 
 export class OpenNeovimService implements OpenPort {
-    constructor(private exec: ExecutionService) {}
+    constructor(private sysCallService: SysCallService) {}
 
     name = OpenType.Neovim
     isReuseWindowSupported = false
@@ -14,10 +14,10 @@ export class OpenNeovimService implements OpenPort {
         if (options.reuseWindow) Logger.getInstance().warn('Reusing windows is not supported with neovim.')
 
         Logger.getInstance().log(`Opening ${directory.yellow} in neovim...`.dim)
-        this.exec.exec(`nvim ${directory}`)
+        this.sysCallService.exec(`nvim ${directory}`)
     }
 
-    isInstalled = () => this.exec.testCommand('nvim --version')
+    isInstalled = () => this.sysCallService.testCommand('nvim --version')
     assertInstalled() {
         if (this.isInstalled()) return
 

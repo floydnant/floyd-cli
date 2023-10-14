@@ -3,7 +3,7 @@ import { z } from 'zod'
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { interpolateVariables, stripJsonComments } from '../../../../../packages/common/src'
 import env from '../../../env.json'
-import { ExecutionService } from '../exec.service'
+import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenService } from '../open/open.service'
 import { OpenType } from '../open/open.types'
@@ -75,5 +75,6 @@ export const readOrInitConfig = () => {
 export const editConfig = () => {
     Logger.getInstance().verbose('Opening config file '.dim, globalPaths.configFile.yellow)
 
-    OpenService.init(ExecutionService.getInstance()).useFirst(OpenType.Neovim).open(globalPaths.configFile)
+    // @TODO: this should be in the config service
+    OpenService.init(SysCallService.getInstance()).useFirst(OpenType.Neovim).open(globalPaths.configFile)
 }

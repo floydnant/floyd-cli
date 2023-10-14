@@ -1,9 +1,9 @@
-import { ExecutionService } from '../exec.service'
+import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenPort, OpenType } from './open.types'
 
 export class OpenVimService implements OpenPort {
-    constructor(private exec: ExecutionService) {}
+    constructor(private sysCallService: SysCallService) {}
 
     name = OpenType.Vim
     isReuseWindowSupported = false
@@ -14,10 +14,10 @@ export class OpenVimService implements OpenPort {
         if (options.reuseWindow) Logger.getInstance().warn('Reusing windows is not supported with vim.')
 
         Logger.getInstance().log(`Opening ${directory.yellow} with vim...`.dim)
-        this.exec.exec(`nvim ${directory}`)
+        this.sysCallService.exec(`nvim ${directory}`)
     }
 
-    isInstalled = () => this.exec.testCommand('vim --version')
+    isInstalled = () => this.sysCallService.testCommand('vim --version')
     assertInstalled() {
         if (this.isInstalled()) return
 

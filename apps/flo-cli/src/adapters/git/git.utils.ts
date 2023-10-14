@@ -1,3 +1,4 @@
+import { SysCallService } from '../../lib/sys-call.service'
 import { Logger } from '../../lib/logger.service'
 import { getRelativePathOf } from '../../lib/utils'
 import { Worktree } from './git.model'
@@ -54,4 +55,15 @@ export const getWorktreeFromBranch = (branch: string, worktrees: Worktree[]) => 
     }
 
     return worktree
+}
+
+export const assertGitHubInstalled = () => {
+    const sysCallService = SysCallService.getInstance()
+    if (sysCallService.testCommand('gh --version')) return
+
+    Logger.getInstance().error(
+        'Please install gh cli with `brew install gh` or go here: https://cli.github.com/manual/installation'
+            .red,
+    )
+    process.exit(1)
 }

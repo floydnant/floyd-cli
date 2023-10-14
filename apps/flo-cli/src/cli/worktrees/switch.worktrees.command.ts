@@ -8,14 +8,14 @@ import { runWorkflow } from '../../lib/workflows/run-workflow'
 import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
 import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
 import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
-import { ExecutionService } from '../../lib/exec.service'
 import { OpenType } from '../../lib/open/open.types'
+import { SysCallService } from '../../lib/sys-call.service'
 
 // @TODO: @floydnant we should be able to checkout a new branch/PR from here
 const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
     const gitRepo = GitRepository.getInstance()
     const configService = ConfigService.getInstance()
-    const openService = OpenService.init(ExecutionService.getInstance()).useFirst(OpenType.Vscode)
+    const openService = OpenService.init(SysCallService.getInstance()).useFirst(OpenType.Vscode)
 
     const worktrees = gitRepo.getWorktrees()
     const workflow = getWorktreeHook(WorktreeHook.OnSwitch)

@@ -2,7 +2,7 @@ import { copyFileSync } from 'fs'
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { assertUnreachable } from '../../../../../packages/common/src'
 import { Logger } from '../logger.service'
-import { exec, getPaddedStr, indent } from '../utils'
+import { getPaddedStr, indent } from '../utils'
 import { ResolvedWorkflow } from './workflow.schemas'
 import {
     filterSteps,
@@ -11,6 +11,7 @@ import {
     isResolvedWorflowStep,
 } from './workflow.utils'
 import { printStep } from './print-workflow'
+import { SysCallService } from '../sys-call.service'
 
 export const runWorkflow = async (
     workflow: ResolvedWorkflow,
@@ -18,6 +19,7 @@ export const runWorkflow = async (
 ) => {
     const workflowName = workflow.name
     const logger = Logger.getInstance()
+    const sysCallService = SysCallService.getInstance()
 
     let steps = workflow.steps
 
@@ -41,7 +43,7 @@ export const runWorkflow = async (
 
         if (isResolvedCommandStep(step)) {
             logStep()
-            exec(step.command, step.cwd)
+            sysCallService.exec(step.command, { cwd: step.cwd })
 
             continue
         }

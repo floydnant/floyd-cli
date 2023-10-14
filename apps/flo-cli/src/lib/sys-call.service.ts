@@ -2,7 +2,7 @@ import { ExecSyncOptions, execSync } from 'child_process'
 import { Logger } from './logger.service'
 import { cacheable } from './utils'
 
-export class ExecutionService {
+export class SysCallService {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     private constructor() {}
 
@@ -36,9 +36,9 @@ export class ExecutionService {
         }
     })
 
-    private static instance = new ExecutionService()
+    private static instance = new SysCallService()
     static getInstance() {
-        if (!this.instance) throw new Error(`${ExecutionService.name} not initialized`)
+        if (!this.instance) throw new Error(`${SysCallService.name} not initialized`)
         return this.instance
     }
 }
