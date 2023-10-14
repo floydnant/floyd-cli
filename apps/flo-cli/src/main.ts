@@ -14,6 +14,7 @@ import { LogLevel, Logger } from './lib/logger.service'
 import { projectsCommand } from './cli/projects'
 import { SysCallService } from './lib/sys-call.service'
 import { GitRepository } from './adapters/git'
+import { ContextService } from './lib/config/context.service'
 
 const cli = new Command()
 
@@ -31,7 +32,8 @@ cli.option('--debug', 'enable debug logging', false)
 cli.hook('preAction', thisCommand => {
     const sysCallService = SysCallService.getInstance()
     const gitRepo = GitRepository.init(sysCallService)
-    const configService = ConfigService.init(gitRepo)
+    ContextService.init(gitRepo)
+    const configService = ConfigService.init()
 
     const logLevel = thisCommand.opts()['debug'] ? LogLevel.DEBUG : configService.config.logLevel
     Logger.updateLogLevel(logLevel)

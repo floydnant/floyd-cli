@@ -2,6 +2,7 @@ import { Command } from 'commander'
 import { ConfigService } from '../../lib/config/config.service'
 import { editConfig } from '../../lib/config/config.utils'
 import { globalPaths } from '../../lib/config/config.vars'
+import { ContextService } from '../../lib/config/context.service'
 
 const editConfigCommand = new Command()
     .createCommand('edit')
@@ -13,9 +14,10 @@ export const configCommand = new Command()
     .description('Shows the resolved config')
     .action(() => {
         const configService = ConfigService.getInstance()
-        const config = configService.interpolateContextVars(configService.rawConfigFile)
+        const contextService = ContextService.getInstance()
 
-        console.log('With available variables:', configService.contextVariables)
+        const config = contextService.interpolateContextVars(configService.rawConfigFile)
+        console.log('With available variables:', contextService.context)
         console.log()
         console.log(globalPaths.configFile.yellow, config)
     })

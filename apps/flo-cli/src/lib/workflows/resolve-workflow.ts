@@ -1,6 +1,7 @@
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { assertUnreachable } from '../../../../../packages/common/src'
 import { ConfigService } from '../config/config.service'
+import { ContextService } from '../config/context.service'
 import { Logger } from '../logger.service'
 import { getRelativePathOf } from '../utils'
 import { ResolvedWorkflow, Workflow } from './workflow.schemas'
@@ -8,14 +9,15 @@ import { isCommandStep, isFilesStep, isWorflowStep } from './workflow.utils'
 
 export const resolveWorkflow = (workflow: Workflow, nestingLevel = 0): ResolvedWorkflow => {
     const configService = ConfigService.getInstance()
+    const contextService = ContextService.getInstance()
     const name = workflow.name?.blue || workflow.workflowId.blue
-    const workflowCwd = workflow.cwd && configService.interpolateContextVars(workflow.cwd)
+    const workflowCwd = workflow.cwd && contextService.interpolateContextVars(workflow.cwd)
 
     const steps = workflow.steps.map(step => {
         if (isCommandStep(step)) {
-            const command = configService.interpolateContextVars(step.command)
+            const command = contextService.interpolateContextVars(step.command)
             const cwd_ = step.cwd || workflowCwd
-            const cwd = cwd_ && configService.interpolateContextVars(cwd_)
+            const cwd = cwd_ && contextService.interpolateContextVars(cwd_)
             const defaultName = `${command.cyan}${cwd ? ' in ' + getRelativePathOf(cwd.yellow) : ''}`
             const name = step.name ? `${step.name} - ${defaultName}` : defaultName
 
@@ -23,8 +25,8 @@ export const resolveWorkflow = (workflow: Workflow, nestingLevel = 0): ResolvedW
         }
 
         if (isFilesStep(step)) {
-            const copyFrom = getRelativePathOf(configService.interpolateContextVars(step.copyFrom))
-            const to = getRelativePathOf(configService.interpolateContextVars(step.to))
+            const copyFrom = getRelativePathOf(contextService.interpolateContextVars(step.copyFrom))
+            const to = getRelativePathOf(contextService.interpolateContextVars(step.to))
             const defaultName = `Copy file from ${copyFrom.yellow} to ${to.yellow}`
             const name = step.name ? `${step.name} - ${defaultName}` : defaultName
 
@@ -40,7 +42,7 @@ export const resolveWorkflow = (workflow: Workflow, nestingLevel = 0): ResolvedW
             }
 
             const cwd_ = step.cwd || stepWorkflow.cwd || workflowCwd
-            const cwd = cwd_ && getRelativePathOf(configService.interpolateContextVars(cwd_))
+            const cwd = cwd_ && getRelativePathOf(contextService.interpolateContextVars(cwd_))
             const defaultName = `Run workflow ${(stepWorkflow.name || stepWorkflow.workflowId).blue}${
                 cwd ? ' in ' + cwd.yellow : ''
             }`

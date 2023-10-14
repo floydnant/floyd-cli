@@ -1,20 +1,20 @@
 import { Command } from 'commander'
 import path from 'path'
 import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
+import { ContextService } from '../../lib/config/context.service'
 import { OpenService } from '../../lib/open/open.service'
-import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
-import { ConfigService } from '../../lib/config/config.service'
-import { runWorkflow } from '../../lib/workflows/run-workflow'
-import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
-import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
-import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 import { OpenType } from '../../lib/open/open.types'
 import { SysCallService } from '../../lib/sys-call.service'
+import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
+import { runWorkflow } from '../../lib/workflows/run-workflow'
+import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
+import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
+import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
 
 // @TODO: @floydnant we should be able to checkout a new branch/PR from here
 const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
     const gitRepo = GitRepository.getInstance()
-    const configService = ConfigService.getInstance()
+    const contextService = ContextService.getInstance()
     const openService = OpenService.init(SysCallService.getInstance()).useFirst(OpenType.Vscode)
 
     const worktrees = gitRepo.getWorktrees()
@@ -26,7 +26,7 @@ const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: bo
         const folderPath = path.join(worktree.directory, opts.subDir || '')
 
         if (workflow) {
-            configService.contextVariables.newWorktreeRoot = worktree.directory
+            contextService.context.newWorktreeRoot = worktree.directory
             await runWorkflow(resolveWorkflow(workflow))
         }
 
@@ -40,7 +40,7 @@ const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: bo
     const worktree = selectedWorktrees[0]!
 
     if (workflow) {
-        configService.contextVariables.newWorktreeRoot = worktree.directory
+        contextService.context.newWorktreeRoot = worktree.directory
         await runWorkflow(resolveWorkflow(workflow))
     }
 
