@@ -9,25 +9,20 @@ import { globalPaths } from './config.vars'
 // or fall back to manually traversing if no git repo is used
 
 export class ConfigService {
-    private constructor() {
+    /** Do not use this constructor directly, use `ConfigService.init()` instead */
+    constructor(private gitRepo: GitRepository) {
         const { config, rawConfigFile } = readOrInitConfig()
         this.config = config
         this.rawConfigFile = rawConfigFile
     }
 
-    private static instance: ConfigService | null = null
-    static getInstance(): ConfigService {
-        if (!this.instance) this.instance = new this()
-        return this.instance
-    }
-
     readonly config!: Config
     readonly rawConfigFile!: string
-    private currentWorktree = GitRepository.getInstance().getCurrentWorktree()
+    private currentWorktree = this.gitRepo.getCurrentWorktree()
     contextVariables = {
         ...globalPaths,
         // localConfigRoot: localConfigFolder, // @TODO: @floydnant
-        repoRoot: GitRepository.getInstance().getRepoRootDir() || '<$repoRoot_not_applicable>',
+        repoRoot: this.gitRepo.getRepoRootDir() || '<$repoRoot_not_applicable>',
         worktreeRoot: this.currentWorktree?.directory || '<$worktreeRoot_not_applicable>',
         cwd: process.cwd(),
         // will be overwritten at a later point when a worktree is created
@@ -44,5 +39,15 @@ export class ConfigService {
         const interpolated = interpolateVariables(contents, contextVariables)
 
         return interpolated
+    }
+
+    private static instance: ConfigService
+    static init(...args: ConstructorParameters<typeof ConfigService>) {
+        this.instance = new ConfigService(...args)
+        return this.instance
+    }
+    static getInstance() {
+        if (!this.instance) throw new Error(`${ConfigService.name} not initialized`)
+        return this.instance
     }
 }

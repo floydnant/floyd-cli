@@ -1,8 +1,8 @@
 import { Command } from 'commander'
 import path from 'path'
-import { getWorktreeFromBranch, getWorktrees } from '../../adapters/git'
+import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
 import { openWithVscode } from '../../lib/utils'
-import { selectWorktrees } from './lib/select-worktrees'
+import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
 import { ConfigService } from '../../lib/config/config.service'
 import { runWorkflow } from '../../lib/workflows/run-workflow'
 import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
@@ -10,17 +10,20 @@ import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
 import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 
 // @TODO: @floydnant we should be able to checkout a new branch/PR from here
-const openWorktree = async (opts: { branch: string | undefined; newWindow?: boolean; subDir?: string }) => {
-    const openOpts = { reuseWindow: !opts.newWindow }
-    const worktrees = getWorktrees()
+const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
+    const gitRepo = GitRepository.getInstance()
+    const configService = ConfigService.getInstance()
+
+    const worktrees = gitRepo.getWorktrees()
     const workflow = getWorktreeHook(WorktreeHook.OnSwitch)
+    const openOpts = { reuseWindow: opts.reuseWindow }
 
     if (opts.branch) {
         const worktree = getWorktreeFromBranch(opts.branch, worktrees)
         const folderPath = path.join(worktree.directory, opts.subDir || '')
 
         if (workflow) {
-            ConfigService.getInstance().contextVariables.newWorktreeRoot = worktree.directory
+            configService.contextVariables.newWorktreeRoot = worktree.directory
             await runWorkflow(resolveWorkflow(workflow))
         }
 
@@ -34,7 +37,7 @@ const openWorktree = async (opts: { branch: string | undefined; newWindow?: bool
     const worktree = selectedWorktrees[0]!
 
     if (workflow) {
-        ConfigService.getInstance().contextVariables.newWorktreeRoot = worktree.directory
+        configService.contextVariables.newWorktreeRoot = worktree.directory
         await runWorkflow(resolveWorkflow(workflow))
     }
 
@@ -49,7 +52,7 @@ export const switchCommand = new Command()
     .argument('[branch]', 'the branch to switch the worktree to')
     .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo')
     .action((branch, { subDir }: { subDir?: string }) => {
-        openWorktree({ branch, subDir, newWindow: false })
+        openWorktree({ branch, subDir, reuseWindow: true })
     })
 
 export const openCommand = new Command()
@@ -59,5 +62,5 @@ export const openCommand = new Command()
     .argument('[branch]', 'the branch to switch the worktree to')
     .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo')
     .action((branch, { subDir }: { subDir?: string }) => {
-        openWorktree({ branch, subDir, newWindow: true })
+        openWorktree({ branch, subDir, reuseWindow: false })
     })

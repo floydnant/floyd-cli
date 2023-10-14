@@ -1,26 +1,10 @@
-import { execSync } from 'child_process'
 import path from 'path'
 import { fixBranchName } from './git.utils'
 import { Worktree } from './git.model'
 import { Logger } from '../../lib/logger.service'
-import { exec, isSubDir } from '../../lib/utils'
+import { cacheable, exec, isSubDir } from '../../lib/utils'
 import { z } from 'zod'
-
-export const getBranches = (remote?: boolean) => {
-    return execSync(`git branch ${remote ? '-r' : ''} --format "%(refname:short)"`)
-        .toString()
-        .split('\n')
-        .filter(Boolean)
-        .map(fixBranchName)
-}
-
-export const getCurrentBranch = (workingDir?: string) =>
-    execSync('git branch --show-current', { cwd: workingDir }).toString().trim()
-
-export const getGitStatus = (directory?: string) =>
-    execSync((directory ? `cd ${directory} && ` : '') + 'git status --short')
-        .toString()
-        .trim()
+import { ExecutionService } from '../../lib/exec.service'
 
 // Git Worktree List Output Format
 //
@@ -57,6 +41,7 @@ export const getGitStatus = (directory?: string) =>
 //     detached
 //     prunable gitdir file points to non-existent location
 
+const errorWithMessageSchema = z.object({ message: z.string() })
 const handleGitErrors = <TArgs extends unknown[], TReturn, TFallback>(
     options: { fallbackValue: TFallback },
     callback: (...args: TArgs) => TReturn,
@@ -66,8 +51,10 @@ const handleGitErrors = <TArgs extends unknown[], TReturn, TFallback>(
             // @TODO: @floydnant lets see, not `await`ing here might be a problem
             return callback(...args)
         } catch (error) {
-            const hasMessage = z.object({ message: z.string() }).safeParse(error).success
-            if (hasMessage && (error as { message: string }).message.includes('not a git repository'))
+            const result = errorWithMessageSchema.safeParse(error)
+            const hasMessage = result.success
+
+            if (hasMessage && result.data.message.includes('not a git repository'))
                 return options.fallbackValue
 
             // console.log(error)
@@ -77,154 +64,147 @@ const handleGitErrors = <TArgs extends unknown[], TReturn, TFallback>(
     }
 }
 
-interface GetWorktreesOptions {
-    cwd?: string
-}
-
-export const getWorktrees = handleGitErrors(
-    { fallbackValue: [] as Worktree[] },
-    (options?: GetWorktreesOptions): Worktree[] => {
-        const output = execSync('git worktree list --porcelain', options).toString().trim()
-        const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
-        const repoRootDir = GitRepository.getInstance().getRepoRootDir(options?.cwd)
-        const cwd = process.cwd()
-
-        const worktrees = worktreeTextBlocks.map(block => {
-            const directory = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '')
-            const branch = block.match(/^branch .+/m)?.[0].replace('branch ', '')
-            const isBare = /^bare/m.test(block)
-
-            const head = block.match(/^HEAD .+/m)?.[0].replace('HEAD ', '')
-            const isDetached = /^detached/m.test(block)
-
-            const isLocked = /^locked/m.test(block)
-            const lockReason = block.match(/^locked .+/m)?.[0].replace('locked ', '')
-
-            const isPrunable = /^prunable/m.test(block)
-            const prunableReason = block.match(/^prunable .+/m)?.[0].replace('locked ', '')
-
-            // this should never happen, because a worktree always has a directory
-            if (!directory) {
-                console.log(`Couldn't match a directory in:\n${block}`.red)
-                process.exit(1)
-            }
-            return {
-                directory,
-                branch: branch && fixBranchName(branch),
-                head,
-                isBare,
-                isLocked,
-                lockReason,
-                isDetached,
-                isPrunable,
-                prunableReason,
-                isMainWorktree: repoRootDir == directory,
-                isCurrent: cwd == directory || isSubDir(cwd, directory),
-            } satisfies Worktree
-        })
-
-        return worktrees
-    },
-)
-
-const getCacheKey = (stuff: object | undefined) => JSON.stringify(stuff || {})
-
 export class GitRepository {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    private constructor() {}
+    /** Do not use this constructor directly, use `.init()` instead */
+    constructor(private exec: ExecutionService) {}
 
-    private static instance = new GitRepository()
-    static getInstance() {
-        return this.instance
-    }
+    getWorktrees = cacheable(
+        handleGitErrors({ fallbackValue: [] as Worktree[] }, (options?: { cwd?: string }): Worktree[] => {
+            const output = this.exec.execSync('git worktree list --porcelain', options).toString().trim()
+            const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
+            const repoRootDir = this.getRepoRootDir(options?.cwd)
+            const cwd = process.cwd()
 
-    private wortreeCache: { [key: string]: Worktree[] } = {}
-    getWorktrees(options: GetWorktreesOptions = { cwd: process.cwd() }): Worktree[] {
-        const cacheKey = getCacheKey(options)
-        if (!this.wortreeCache[cacheKey]) this.wortreeCache[cacheKey] = getWorktrees(options)
+            const worktrees = worktreeTextBlocks.map(block => {
+                const directory = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '')
+                const branch = block.match(/^branch .+/m)?.[0].replace('branch ', '')
+                const isBare = /^bare/m.test(block)
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.wortreeCache[cacheKey]!
-    }
+                const head = block.match(/^HEAD .+/m)?.[0].replace('HEAD ', '')
+                const isDetached = /^detached/m.test(block)
+
+                const isLocked = /^locked/m.test(block)
+                const lockReason = block.match(/^locked .+/m)?.[0].replace('locked ', '')
+
+                const isPrunable = /^prunable/m.test(block)
+                const prunableReason = block.match(/^prunable .+/m)?.[0].replace('locked ', '')
+
+                // this should never happen, because a worktree always has a directory
+                if (!directory) {
+                    console.log(`Couldn't match a directory in:\n${block}`.red)
+                    process.exit(1)
+                }
+                return {
+                    directory,
+                    branch: branch && fixBranchName(branch),
+                    head,
+                    isBare,
+                    isLocked,
+                    lockReason,
+                    isDetached,
+                    isPrunable,
+                    prunableReason,
+                    isMainWorktree: repoRootDir == directory,
+                    isCurrent: cwd == directory || isSubDir(cwd, directory),
+                } satisfies Worktree
+            })
+
+            return worktrees
+        }),
+    )
+
+    getBranches = cacheable((remote?: boolean) => {
+        return this.exec
+            .execSync(`git branch ${remote ? '-r' : ''} --format "%(refname:short)"`)
+            .toString()
+            .split('\n')
+            .filter(Boolean)
+            .map(fixBranchName)
+    })
+
+    getCurrentBranch = cacheable((workingDir?: string) => {
+        return this.exec.execSync('git branch --show-current', { cwd: workingDir }).toString().trim()
+    })
 
     getCurrentWorktree() {
         return this.getWorktrees().find(tree => tree.isCurrent)
     }
 
-    private repoRootDirCache: { [key: string]: string | null } = {}
-    getRepoRootDir(cwd = process.cwd()): string | null {
-        const cacheKey = cwd
-        if (!this.repoRootDirCache[cacheKey]) this.repoRootDirCache[cacheKey] = getRepoRootDir(cwd)
+    getRepoRootDir = cacheable(
+        handleGitErrors({ fallbackValue: null }, (cwd: string = process.cwd()) => {
+            const gitDir = this.exec.execSync('git rev-parse --git-dir', { cwd }).toString().trim()
+            const isAbsolute = path.isAbsolute(gitDir)
+            const joined = path.join(cwd, gitDir)
+            const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.repoRootDirCache[cacheKey]!
+            return resolved
+        }),
+    )
+
+    getGitStatus = cacheable((directory?: string) => {
+        return this.exec
+            .execSync((directory ? `cd ${directory} && ` : '') + 'git status --short')
+            .toString()
+            .trim()
+    })
+
+    getCommitLogs = cacheable((dir?: string, limit?: number) => {
+        const cmd = `git log --oneline --graph --decorate --color ${limit ? '-n ' + limit : ''}`
+        console.log('non cached call:', cmd)
+        return this.exec.execSync(cmd, { cwd: dir }).toString()
+    })
+
+    getRemoteOf(branch: string) {
+        try {
+            return this.exec.execSync(`git config --get branch.${branch}.remote`).toString().trim() || null
+        } catch {
+            return null
+        }
     }
 
-    private gitStatusCache: { [key: string]: string | null } = {}
-    getGitStatus(cwd = process.cwd()): string | null {
-        const cacheKey = cwd
-        if (!this.gitStatusCache[cacheKey]) this.gitStatusCache[cacheKey] = getGitStatus(cwd)
-
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.gitStatusCache[cacheKey]!
+    /** `git branch <branchName>` */
+    createBranch(branchName: string, message: string | null = `Creating branch ${branchName.green}...`.dim) {
+        if (message !== null) Logger.getInstance().log(message)
+        exec(`git branch ${branchName}`)
     }
-}
 
-export const getCommitLogs = (dir?: string, limit?: number) => {
-    const cmd = `git log --oneline --graph --decorate --color ${limit ? '-n ' + limit : ''}`
-    return execSync(cmd, { cwd: dir }).toString()
-}
-
-const getRepoRootDir = handleGitErrors({ fallbackValue: null }, (cwd: string = process.cwd()) => {
-    const gitDir = execSync('git rev-parse --git-dir', { cwd }).toString().trim()
-    const isAbsolute = path.isAbsolute(gitDir)
-    const joined = path.join(cwd, gitDir)
-    const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
-
-    return resolved
-})
-
-export const getRemoteOf = (branch: string) => {
-    try {
-        return execSync(`git config --get branch.${branch}.remote`).toString().trim() || null
-    } catch {
-        return null
+    deleteBranch(branchName: string, loggerMessage: string | null = `Deleted branch ${branchName}`) {
+        this.exec.execSync(`git branch -d ${branchName}`)
+        if (loggerMessage !== null) Logger.getInstance().verbose(loggerMessage)
     }
-}
 
-/** `git branch <branchName>` */
-export const createBranch = (
-    branchName: string,
-    message: string | null = `Creating branch ${branchName.green}...`.dim,
-) => {
-    if (message !== null) Logger.getInstance().log(message)
-    exec(`git branch ${branchName}`)
-}
-
-export const deleteBranch = (
-    branchName: string,
-    loggerMessage: string | null = `Deleted branch ${branchName}`,
-) => {
-    execSync(`git branch -d ${branchName}`)
-    if (loggerMessage !== null) Logger.getInstance().verbose(loggerMessage)
-}
-
-export const gitFetch = (upstream?: string) => {
-    Logger.getInstance().verbose(`\nFetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
-    exec(`git fetch ${upstream || ''}`)
-}
-
-export const gitPull = (upstream?: string, workingDir?: string) => {
-    const upstreamText = upstream ? ' from ' + upstream.magenta : ''
-    try {
-        Logger.getInstance().verbose(`\nPulling${upstreamText}...`.dim)
-        exec(`git pull ${upstream || ''}`, workingDir)
-    } catch {
-        Logger.getInstance().error(`Failed to pull${upstreamText}`.red)
+    gitFetch(upstream?: string) {
+        Logger.getInstance().verbose(`\nFetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
+        exec(`git fetch ${upstream || ''}`)
     }
-}
 
-export const gitCheckout = (branchName: string, workingDir?: string) => {
-    Logger.getInstance().log()
-    return execSync(`git checkout ${branchName}`, { cwd: workingDir }).toString()
+    gitPull(upstream?: string, workingDir?: string) {
+        const upstreamText = upstream ? ' from ' + upstream.magenta : ''
+        try {
+            Logger.getInstance().verbose(`\nPulling${upstreamText}...`.dim)
+            exec(`git pull ${upstream || ''}`, workingDir)
+        } catch {
+            Logger.getInstance().error(`Failed to pull${upstreamText}`.red)
+        }
+    }
+
+    gitCheckout(branchName: string, workingDir?: string) {
+        Logger.getInstance().log()
+        return this.exec.execSync(`git checkout ${branchName}`, { cwd: workingDir }).toString()
+    }
+
+    private static instance: GitRepository
+    static init(...args: ConstructorParameters<typeof GitRepository>) {
+        if (this.instance) {
+            Logger.warn(`${GitRepository.name} already initialized, ignoring...`)
+            return this.instance
+        }
+
+        this.instance = new GitRepository(...args)
+        return this.instance
+    }
+    static getInstance() {
+        if (!this.instance) throw new Error(`${GitRepository.name} not initialized`)
+        return this.instance
+    }
 }

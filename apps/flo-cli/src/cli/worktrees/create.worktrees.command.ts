@@ -1,16 +1,16 @@
 import { Command } from 'commander'
 import path from 'path'
 import prompts from 'prompts'
-import { createBranch, getBranches, getWorktrees, gitFetch } from '../../adapters/git'
+import { GitRepository } from '../../adapters/git'
 import { getOpenPullRequests, getPullRequest } from '../../adapters/github'
 import { ConfigService } from '../../lib/config/config.service'
 import { Logger } from '../../lib/logger.service'
 import { assertGitHubInstalled, openWithVscode } from '../../lib/utils'
 import { runWorkflow } from '../../lib/workflows/run-workflow'
 import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
-import { selectBranch } from './lib/select-branch'
-import { selectPullRequest } from './lib/select-pull-request'
-import { setupWorktree } from './lib/setup-worktree'
+import { selectBranch } from '../../lib/worktrees/select-branch'
+import { selectPullRequest } from '../../lib/worktrees/select-pull-request'
+import { setupWorktree } from '../../lib/worktrees/setup-worktree'
 import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
 import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 
@@ -27,10 +27,12 @@ const createWorktree = async (
         worktreePrefix: boolean
     },
 ) => {
-    const logger = Logger.getInstance()
-    const worktrees = getWorktrees()
+    const gitRepo = GitRepository.getInstance()
+    const configService = ConfigService.getInstance()
+
+    const worktrees = gitRepo.getWorktrees()
     const useRemoteBranches = !!opts.upstreamBranch || !!opts.pullRequest
-    const branches = getBranches(useRemoteBranches)
+    const branches = gitRepo.getBranches(useRemoteBranches)
 
     let branch = typeof opts.upstreamBranch == 'string' ? opts.upstreamBranch : branch_
 
@@ -47,7 +49,7 @@ const createWorktree = async (
 
         const pr = getPullRequest(opts.pullRequest)
         branch = pr.headRefName
-        logger.verbose(`\nFound pull request ${('#' + pr.number).magenta} ${pr.title}`.dim)
+        Logger.verbose(`\nFound pull request ${('#' + pr.number).magenta} ${pr.title}`.dim)
     }
 
     branchingScope: if (!branch) {
@@ -59,7 +61,7 @@ const createWorktree = async (
         })
 
         if (!branchSelection) {
-            logger.warn('No branch selected'.red)
+            Logger.warn('No branch selected'.red)
             process.exit(1)
         }
 
@@ -70,13 +72,13 @@ const createWorktree = async (
 
         branch = branchSelection.new
 
-        createBranch(branch)
+        gitRepo.createBranch(branch)
     }
     if (!branch) return
 
     const checkedOutWorktree = worktrees.find(worktree => worktree.branch == branch)
     if (checkedOutWorktree) {
-        logger.error(
+        Logger.error(
             `The branch ${branch.green} is already checked out in `.red + checkedOutWorktree.directory.yellow,
         )
         process.exit(1)
@@ -84,11 +86,11 @@ const createWorktree = async (
 
     // const upstream = !useRemoteBranches ? '' : (opts.remote || getRemoteOf(branch) || 'origin') + ' ' + branch
 
-    if (useRemoteBranches) gitFetch()
+    if (useRemoteBranches) gitRepo.gitFetch()
     // create branch if it doesn't exist yet
-    else if (!getBranches().includes(branch)) {
-        logger.log(`\nBranch ${branch.green} does not exists yet, creating it for you now...`.dim)
-        createBranch(branch, null)
+    else if (!gitRepo.getBranches().includes(branch)) {
+        Logger.log(`\nBranch ${branch.green} does not exist yet, creating it for you now...`.dim)
+        gitRepo.createBranch(branch, null)
     }
 
     const worktree = setupWorktree({
@@ -99,10 +101,10 @@ const createWorktree = async (
     })
 
     const workflow = getWorktreeHook(WorktreeHook.OnCreate)
-    ConfigService.getInstance().contextVariables.newWorktreeRoot = worktree.directory
+    configService.contextVariables.newWorktreeRoot = worktree.directory
     if (workflow) await runWorkflow(resolveWorkflow(workflow))
 
-    logger.log()
+    Logger.log()
     const folderPath = path.join(worktree.directory, opts.subDir || '')
     const { next }: { next?: () => void } = await prompts({
         type: 'select',
@@ -145,4 +147,18 @@ export const createWorktreeCommand = new Command()
     .option('-r, --remote <remote>', 'which remote to fetch from')
     .option('--pr, --pull-request [number]', 'create a worktree from a pull request')
     .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo when opening vscode')
-    .action(createWorktree)
+    .action(
+        (
+            branch: string | undefined,
+            opts: {
+                upstreamBranch?: boolean | string
+                remote?: string
+                pullRequest?: boolean | string
+                subDir?: string
+                directory?: string
+                useBranch: boolean
+                /** wether to stick the name of the repo in front of the new worktree's directory */
+                worktreePrefix: boolean
+            },
+        ) => createWorktree(branch, opts),
+    )

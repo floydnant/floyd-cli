@@ -3,9 +3,10 @@ import { ConfigService } from '../../lib/config/config.service'
 import { Logger } from '../../lib/logger.service'
 import { selectProject } from '../../lib/projects/project.utils'
 import { openWithVscode } from '../../lib/utils'
-import { selectWorktrees } from '../worktrees/lib/select-worktrees'
+import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
 import { ProjectsService } from '../../lib/projects/projects.service'
 import { GitRepository } from '../../adapters/git'
+import { ExecutionService } from '../../lib/exec.service'
 
 export const openCommand = new Command()
     .createCommand('open')
@@ -15,13 +16,16 @@ export const openCommand = new Command()
     // @TODO:
     // .argument('[project-or-alias]', 'The projectId or alias')
     .action(async ({ reuseWindow }: { reuseWindow: boolean }) => {
-        const projectMap = ConfigService.getInstance().config.projects
+        const gitRepo = GitRepository.getInstance()
+        const projectsService = new ProjectsService(gitRepo)
+        const configService = ConfigService.getInstance()
+
+        const projectMap = configService.config.projects
         if (!projectMap || Object.keys(projectMap).length == 0) {
             Logger.error('No projects configured')
             return
         }
 
-        const projectsService = new ProjectsService(GitRepository.getInstance())
         const projects = projectsService.resolveProjectMap(projectMap)
 
         const selectedProject = await selectProject(projects, 'Select project to open')

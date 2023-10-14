@@ -1,10 +1,12 @@
 import prompts from 'prompts'
-import { Worktree, getGitStatus, getWorktreeDisplayStr, getWorktrees } from '../../../adapters/git'
+import { GitRepository, Worktree, getWorktreeDisplayStr } from '../../adapters/git'
 
 export const selectWorktrees = async (
-    worktrees = getWorktrees(),
+    worktrees: Worktree[],
     opts?: { message?: string; multiple?: boolean },
 ): Promise<Worktree[] | null> => {
+    const gitRepo = GitRepository.getInstance()
+
     const multiple = opts?.multiple ?? true
     const defaultMessage = multiple ? 'Select worktrees' : 'Select a worktree'
     const message = opts?.message || defaultMessage
@@ -14,7 +16,7 @@ export const selectWorktrees = async (
         name: 'trees',
         message: message || defaultMessage,
         choices: worktrees.map(tree => ({
-            title: getWorktreeDisplayStr(tree, !!getGitStatus(tree.directory)),
+            title: getWorktreeDisplayStr(tree, !!gitRepo.getGitStatus(tree.directory)),
             value: tree,
         })),
         instructions: false,

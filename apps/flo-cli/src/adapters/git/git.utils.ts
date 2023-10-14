@@ -1,7 +1,6 @@
 import { Logger } from '../../lib/logger.service'
 import { getRelativePathOf } from '../../lib/utils'
 import { Worktree } from './git.model'
-import { GitRepository } from './git.repo'
 
 export const fixBranchName = (branch: string) =>
     branch.replace('refs/', '').replace('heads/', '').replace('remotes/', '').replace('origin/', '')
@@ -45,10 +44,7 @@ export const getBranchWorktreeString = (worktrees: Worktree[], branch: string | 
     return ` ${'(checked out'.red} ${pathToWorkTree}${')'.red}`
 }
 
-export const getWorktreeFromBranch = (
-    branch: string,
-    worktrees = GitRepository.getInstance().getWorktrees(),
-) => {
+export const getWorktreeFromBranch = (branch: string, worktrees: Worktree[]) => {
     const worktree = worktrees.find(tree => {
         return tree.branch == branch || tree.branch == fixBranchName(branch)
     })

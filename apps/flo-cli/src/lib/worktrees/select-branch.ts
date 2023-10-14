@@ -1,5 +1,5 @@
 import prompts from 'prompts'
-import { Worktree, getBranchWorktreeString, getCurrentBranch } from '../../../adapters/git'
+import { GitRepository, Worktree, getBranchWorktreeString } from '../../adapters/git'
 
 const enterNewBranchName = async (existingBranches: string[], currentBranch: string) => {
     const { newBranch }: { newBranch?: string } = await prompts({
@@ -31,6 +31,8 @@ export const selectBranch = async ({
     currentBranch,
     allowNewBranch = true,
 }: SelectBranchOptions): SelectBranchResult => {
+    const gitRepo = GitRepository.getInstance()
+
     const CHOICE_NEW = '*new*'
     const choiceCreate = !allowNewBranch
         ? []
@@ -58,7 +60,7 @@ export const selectBranch = async ({
 
     if (selectedBranch != CHOICE_NEW) return { existing: selectedBranch }
 
-    const newBranchName = await enterNewBranchName(branches, currentBranch || getCurrentBranch())
+    const newBranchName = await enterNewBranchName(branches, currentBranch || gitRepo.getCurrentBranch())
     if (!newBranchName) return null
 
     return { new: newBranchName }

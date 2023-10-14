@@ -1,17 +1,18 @@
 import { Command } from 'commander'
 import prompts from 'prompts'
-import { getWorktreeFromBranch, getWorktrees } from '../../adapters/git'
+import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
 import { exec } from '../../lib/utils'
-import { selectWorktrees } from './lib/select-worktrees'
+import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
 import { Logger } from '../../lib/logger.service'
 
 const deleteWorktree = async (
     branch: string | undefined,
     opts: { force?: boolean; deleteBranch?: boolean; forceDeleteBranch?: boolean },
 ) => {
-    const worktrees = getWorktrees()
+        const gitRepo = GitRepository.getInstance()
+        
+        const worktrees = gitRepo.getWorktrees()
     const optsDelete = (opts.deleteBranch || opts.forceDeleteBranch) && { deleteBranch: true }
-    const logger = Logger.getInstance()
 
     if (branch) {
         const worktree = getWorktreeFromBranch(branch, worktrees)
@@ -46,8 +47,8 @@ const deleteWorktree = async (
         try {
             exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${worktree.branch}`)
         } catch (e) {
-            logger.debug(e)
-            logger.error(`Failed to delete branch ${branch}`)
+                Logger.debug(e)
+                Logger.error(`Failed to delete branch ${branch}`)
         }
         return
     }
@@ -74,7 +75,9 @@ const deleteWorktree = async (
         await prompts({
             type: 'confirm',
             name: 'deleteBranch',
-            message: `${'Delete'.red} ${selectedTrees.length > 1 ? 'these branches' : 'this branch'} too?`,
+                message: `${'Delete'.red} ${
+                    selectedTrees.length > 1 ? 'these branches' : 'this branch'
+                } too?`,
         }))
 
     selectedTrees.forEach(tree => {
@@ -86,8 +89,8 @@ const deleteWorktree = async (
             try {
                 exec(`git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${tree.branch}`)
             } catch (e) {
-                logger.debug(e)
-                logger.error(`Failed to delete branch ${tree.branch}`)
+                    Logger.debug(e)
+                    Logger.error(`Failed to delete branch ${tree.branch}`)
             }
         }
     })

@@ -6,29 +6,6 @@ import { Logger } from './logger.service'
 export const exec = (command: string, workingDir?: string) =>
     execSync(command, { stdio: 'inherit', cwd: workingDir })
 
-// This is random WIP btw, don't bother
-export class Exec {
-    static execSync(command: string, options: Parameters<typeof execSync>[1] = {}) {
-        Logger.getInstance().debug(`Executing: ${command.cyan}`)
-        return execSync(command, options)?.toString()
-    }
-
-    static exec(command: string, options: Parameters<typeof execSync>[1] = {}) {
-        Logger.getInstance().debug(`Executing: ${command.cyan}`)
-        return execSync(command, { stdio: 'inherit', ...options })?.toString()
-    }
-}
-
-// @TODO: this should be named `testCommand`
-export const test = (command: string) => {
-    try {
-        execSync(command, { stdio: 'ignore' })
-        return true
-    } catch {
-        return false
-    }
-}
-
 export const assertGitHubInstalled = () => {
     if (test('gh --version')) return
 
@@ -107,3 +84,18 @@ export const getFlags = (...argsArr: Record<string, string | number | boolean | 
 // )
 // console.log(args({ '--some-flag': 'with stuff', '-c': false, '-m': true }))
 // console.log(flags)
+
+export const getCacheKey = (stuff: object | undefined) => JSON.stringify(stuff || {})
+
+export const cacheable = <TArgs extends unknown[], TReturn>(callback: (...args: TArgs) => TReturn) => {
+    const cache: { [key: string]: TReturn } = {}
+    return (...args: TArgs) => {
+        const cacheKey = getCacheKey(args)
+        if (!cache[cacheKey]) cache[cacheKey] = callback(...args)
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return cache[cacheKey]!
+    }
+}
+
+export const isNumber = (value: string) => !isNaN(parseInt(value))

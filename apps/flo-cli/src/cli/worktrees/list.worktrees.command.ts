@@ -1,17 +1,19 @@
 import { Command } from 'commander'
-import { getGitStatus, getCommitLogs, getWorktreeDisplayStr, getWorktrees } from '../../adapters/git'
+import { GitRepository, getWorktreeDisplayStr } from '../../adapters/git'
 import { getPaddedStr, indent } from '../../lib/utils'
 
 const listWorktrees = (opts: { logs?: boolean | string }) => {
-    const worktrees = getWorktrees()
+    const gitRepo = GitRepository.getInstance()
+
+    const worktrees = gitRepo.getWorktrees()
         .map(tree => {
             const worktreeStr = getWorktreeDisplayStr(tree)
 
-            const status = getGitStatus(tree.directory)
+            const status = gitRepo.getGitStatus(tree.directory)
             const statusDisplay = !status ? ' Clean'.dim : status
 
             const logLimit = isNaN(parseInt(opts.logs as string)) ? 5 : (opts.logs as unknown as number)
-            const commits = opts.logs ? '\n\n' + getCommitLogs(tree.directory, logLimit) : ''
+            const commits = opts.logs ? '\n\n' + gitRepo.getCommitLogs(tree.directory, logLimit) : ''
 
             return `${getPaddedStr(worktreeStr)}\n${indent(statusDisplay, 3)}${indent(commits)}`
         })
