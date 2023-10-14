@@ -1,18 +1,21 @@
 import { Command } from 'commander'
 import path from 'path'
 import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
-import { openWithVscode } from '../../lib/utils'
+import { OpenService } from '../../lib/open/open.service'
 import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
 import { ConfigService } from '../../lib/config/config.service'
 import { runWorkflow } from '../../lib/workflows/run-workflow'
 import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
 import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
 import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
+import { ExecutionService } from '../../lib/exec.service'
+import { OpenType } from '../../lib/open/open.types'
 
 // @TODO: @floydnant we should be able to checkout a new branch/PR from here
 const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
     const gitRepo = GitRepository.getInstance()
     const configService = ConfigService.getInstance()
+    const openService = OpenService.init(ExecutionService.getInstance()).useFirst(OpenType.Vscode)
 
     const worktrees = gitRepo.getWorktrees()
     const workflow = getWorktreeHook(WorktreeHook.OnSwitch)
@@ -27,7 +30,7 @@ const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: bo
             await runWorkflow(resolveWorkflow(workflow))
         }
 
-        openWithVscode(folderPath, openOpts)
+        openService.open(folderPath, openOpts)
         return
     }
 
@@ -42,7 +45,7 @@ const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: bo
     }
 
     const folderPath = path.join(worktree.directory, opts.subDir || '')
-    openWithVscode(folderPath, openOpts)
+    openService.open(folderPath, openOpts)
 }
 
 export const switchCommand = new Command()

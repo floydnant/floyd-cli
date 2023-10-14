@@ -1,12 +1,13 @@
 import { Command } from 'commander'
-import { ConfigService } from '../../lib/config/config.service'
-import { Logger } from '../../lib/logger.service'
-import { selectProject } from '../../lib/projects/project.utils'
-import { openWithVscode } from '../../lib/utils'
-import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
-import { ProjectsService } from '../../lib/projects/projects.service'
 import { GitRepository } from '../../adapters/git'
+import { ConfigService } from '../../lib/config/config.service'
 import { ExecutionService } from '../../lib/exec.service'
+import { Logger } from '../../lib/logger.service'
+import { OpenService } from '../../lib/open/open.service'
+import { OpenType } from '../../lib/open/open.types'
+import { selectProject } from '../../lib/projects/project.utils'
+import { ProjectsService } from '../../lib/projects/projects.service'
+import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
 
 export const openCommand = new Command()
     .createCommand('open')
@@ -19,6 +20,7 @@ export const openCommand = new Command()
         const gitRepo = GitRepository.getInstance()
         const projectsService = new ProjectsService(gitRepo)
         const configService = ConfigService.getInstance()
+        const openService = OpenService.init(ExecutionService.getInstance()).useFirst(OpenType.Vscode)
 
         const projectMap = configService.config.projects
         if (!projectMap || Object.keys(projectMap).length == 0) {
@@ -32,7 +34,7 @@ export const openCommand = new Command()
         if (!selectedProject) return
 
         if (selectedProject.worktrees.length == 1) {
-            openWithVscode(selectedProject.projectConfig.root, { reuseWindow })
+            openService.open(selectedProject.projectConfig.root, { reuseWindow })
             return
         }
 
@@ -42,5 +44,5 @@ export const openCommand = new Command()
         })
         if (!result?.[0]) return
 
-        openWithVscode(result[0].directory, { reuseWindow })
+        openService.open(result[0].directory, { reuseWindow })
     })

@@ -1,18 +1,22 @@
+import '@total-typescript/ts-reset'
 import { Command } from 'commander'
 import path from 'path'
 import prompts from 'prompts'
 import { GitRepository } from '../../adapters/git'
 import { getOpenPullRequests, getPullRequest } from '../../adapters/github'
 import { ConfigService } from '../../lib/config/config.service'
+import { ExecutionService } from '../../lib/exec.service'
 import { Logger } from '../../lib/logger.service'
-import { assertGitHubInstalled, openWithVscode } from '../../lib/utils'
+import { OpenService } from '../../lib/open/open.service'
+import { OpenType } from '../../lib/open/open.types'
+import { assertGitHubInstalled } from '../../lib/utils'
+import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 import { runWorkflow } from '../../lib/workflows/run-workflow'
-import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
 import { selectBranch } from '../../lib/worktrees/select-branch'
 import { selectPullRequest } from '../../lib/worktrees/select-pull-request'
 import { setupWorktree } from '../../lib/worktrees/setup-worktree'
+import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
 import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
-import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 
 const createWorktree = async (
     branch_: string | undefined,
@@ -29,6 +33,7 @@ const createWorktree = async (
 ) => {
     const gitRepo = GitRepository.getInstance()
     const configService = ConfigService.getInstance()
+    const openService = new OpenService(ExecutionService.getInstance()).useFirst(OpenType.Vscode)
 
     const worktrees = gitRepo.getWorktrees()
     const useRemoteBranches = !!opts.upstreamBranch || !!opts.pullRequest
@@ -110,18 +115,17 @@ const createWorktree = async (
         type: 'select',
         name: 'next',
         message: 'Your worktree is ready! What next?',
-
         choices: [
-            {
-                title: 'Open worktree in VSCode (reuse window)',
-                value: () => openWithVscode(folderPath, { reuseWindow: true }),
+            openService.isReuseWindowSupported && {
+                title: `Open worktree in ${openService.name} (reuse window)`,
+                value: () => openService.open(folderPath, { reuseWindow: true }),
             },
             {
-                title: 'Open worktree in VSCode (new window)',
-                value: () => openWithVscode(folderPath),
+                title: `Open worktree in ${openService.name}`,
+                value: () => openService.open(folderPath),
             },
             { title: 'Do nothing', value: () => undefined, description: 'suit yourself then' },
-        ],
+        ].filter(Boolean),
         instructions: false,
     })
 
