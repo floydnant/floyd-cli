@@ -71,7 +71,7 @@ export class GitRepository {
     getWorktrees = cacheable(
         handleGitErrors({ fallbackValue: [] as Worktree[] }, (options?: { cwd?: string }): Worktree[] => {
             const output = this.sysCallService
-                .execSync('git worktree list --porcelain', { cwd: options?.cwd, stdio: 'pipe' })
+                .exec('git worktree list --porcelain', { cwd: options?.cwd, stdio: 'pipe' })
                 .trim()
             const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
             const repoRootDir = this.getRepoRootDir(options?.cwd)
@@ -117,7 +117,7 @@ export class GitRepository {
 
     getBranches = cacheable((remote?: boolean) => {
         return this.sysCallService
-            .execSync(`git branch ${remote ? '-r' : ''} --format "%(refname:short)"`)
+            .exec(`git branch ${remote ? '-r' : ''} --format "%(refname:short)"`)
             .toString()
             .split('\n')
             .filter(Boolean)
@@ -125,7 +125,7 @@ export class GitRepository {
     })
 
     getCurrentBranch = cacheable((workingDir?: string) => {
-        return this.sysCallService.execSync('git branch --show-current', { cwd: workingDir }).trim()
+        return this.sysCallService.exec('git branch --show-current', { cwd: workingDir }).trim()
     })
 
     getCurrentWorktree() {
@@ -134,9 +134,7 @@ export class GitRepository {
 
     getRepoRootDir = cacheable(
         handleGitErrors({ fallbackValue: null }, (cwd: string = process.cwd()) => {
-            const gitDir = this.sysCallService
-                .execSync('git rev-parse --git-dir', { cwd, stdio: 'pipe' })
-                .trim()
+            const gitDir = this.sysCallService.exec('git rev-parse --git-dir', { cwd, stdio: 'pipe' }).trim()
             const isAbsolute = path.isAbsolute(gitDir)
             const joined = path.join(cwd, gitDir)
             const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
@@ -146,17 +144,17 @@ export class GitRepository {
     )
 
     getGitStatus = cacheable((directory?: string) => {
-        return this.sysCallService.execSync('git status --short', { cwd: directory }).trim()
+        return this.sysCallService.exec('git status --short', { cwd: directory }).trim()
     })
 
     getCommitLogs = cacheable((dir?: string, limit?: number) => {
         const cmd = `git log --oneline --graph --decorate --color ${limit ? '-n ' + limit : ''}`
-        return this.sysCallService.execSync(cmd, { cwd: dir })
+        return this.sysCallService.exec(cmd, { cwd: dir })
     })
 
     getRemoteOf(branch: string) {
         try {
-            return this.sysCallService.execSync(`git config --get branch.${branch}.remote`).trim() || null
+            return this.sysCallService.exec(`git config --get branch.${branch}.remote`).trim() || null
         } catch {
             return null
         }
@@ -165,24 +163,24 @@ export class GitRepository {
     /** `git branch <branchName>` */
     createBranch(branchName: string, message: string | null = `Creating branch ${branchName.green}...`.dim) {
         if (message !== null) Logger.getInstance().log(message)
-        this.sysCallService.exec(`git branch ${branchName}`)
+        this.sysCallService.execInherit(`git branch ${branchName}`)
     }
 
     deleteBranch(branchName: string, loggerMessage: string | null = `Deleted branch ${branchName}`) {
-        this.sysCallService.execSync(`git branch -d ${branchName}`)
+        this.sysCallService.exec(`git branch -d ${branchName}`)
         if (loggerMessage !== null) Logger.getInstance().verbose(loggerMessage)
     }
 
     gitFetch(upstream?: string) {
         Logger.getInstance().verbose(`\nFetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
-        this.sysCallService.exec(`git fetch ${upstream || ''}`)
+        this.sysCallService.execInherit(`git fetch ${upstream || ''}`)
     }
 
     gitPull(upstream?: string, workingDir?: string) {
         const upstreamText = upstream ? ' from ' + upstream.magenta : ''
         try {
             Logger.getInstance().verbose(`\nPulling${upstreamText}...`.dim)
-            this.sysCallService.exec(`git pull ${upstream || ''}`, { cwd: workingDir })
+            this.sysCallService.execInherit(`git pull ${upstream || ''}`, { cwd: workingDir })
         } catch {
             Logger.getInstance().error(`Failed to pull${upstreamText}`.red)
         }
@@ -190,7 +188,7 @@ export class GitRepository {
 
     gitCheckout(branchName: string, workingDir?: string) {
         Logger.getInstance().log()
-        return this.sysCallService.execSync(`git checkout ${branchName}`, { cwd: workingDir })
+        return this.sysCallService.exec(`git checkout ${branchName}`, { cwd: workingDir })
     }
 
     private static instance: GitRepository

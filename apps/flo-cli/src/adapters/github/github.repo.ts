@@ -73,7 +73,7 @@ export const viewChecks = (prNumberOrBranch: number | string | undefined) => {
 
     // gh throws if there are failed checks
     try {
-        sysCallService.exec(`gh pr checks ${prNumberOrBranch ?? ''}`)
+        sysCallService.execInherit(`gh pr checks ${prNumberOrBranch ?? ''}`)
     } catch {
         // silently do nothing
     }

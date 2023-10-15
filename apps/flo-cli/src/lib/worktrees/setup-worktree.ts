@@ -17,7 +17,7 @@ export const setupWorktree = (opts: {
 
     const repoRootDir = gitRepo.getRepoRootDir()
     if (!repoRootDir) {
-        Logger.getInstance().error('Not in a git repository')
+        Logger.error('Not in a git repository')
         process.exit(1)
     }
     const repoFolderName = path.basename(repoRootDir)
@@ -36,7 +36,8 @@ export const setupWorktree = (opts: {
         opts.directory || path.join(repoRootDir, '../', repoFolderName + '.worktrees/', worktreeName)
 
     Logger.getInstance().log(`\nCreating worktree in ${worktreePath.yellow}...`.dim)
-    sysCallService.exec(`git worktree add ${worktreePath} --quiet`)
+    // @TODO: this must be a gitRepo operation
+    sysCallService.execInherit(`git worktree add ${worktreePath} --quiet`)
 
     let worktreeBranch = worktreeName
 
@@ -48,7 +49,8 @@ export const setupWorktree = (opts: {
     } else if (opts.pullRequestToCheckout && opts.pullRequestToCheckout != worktreeBranch) {
         assertGitHubInstalled()
 
-        sysCallService.exec(`gh pr checkout ${opts.pullRequestToCheckout}`, { cwd: worktreePath })
+        // @TODO: this must be a githubRepo operation
+        sysCallService.execInherit(`gh pr checkout ${opts.pullRequestToCheckout}`, { cwd: worktreePath })
         worktreeBranch = gitRepo.getCurrentBranch(worktreePath)
 
         gitRepo.deleteBranch(worktreeName, null)

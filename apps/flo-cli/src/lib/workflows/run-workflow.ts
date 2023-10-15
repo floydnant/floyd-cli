@@ -96,7 +96,7 @@ export const runWorkflow = async (
             if (result == 'abort') return
             if (result == 'abort all') return false
 
-            sysCallService.exec(step.command, { cwd: step.cwd })
+            sysCallService.execInherit(step.command, { cwd: step.cwd })
             continue
         }
         if (isResolvedFilesStep(step)) {

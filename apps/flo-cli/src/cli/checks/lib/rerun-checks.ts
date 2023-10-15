@@ -126,7 +126,7 @@ export const rerunChecks = async (
         )
 
         try {
-            sysCallService.exec(command)
+            sysCallService.execInherit(command)
         } catch {
             console.log(
                 'Failed to rerun, this might be because there is already a running job in this workflow'.red,

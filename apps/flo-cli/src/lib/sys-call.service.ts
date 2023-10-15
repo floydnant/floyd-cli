@@ -9,7 +9,7 @@ export class SysCallService {
     /**
      * `execSync` from `child_process` with debug logging
      */
-    execSync(command: string, options: ExecSyncOptions = {}) {
+    exec(command: string, options: ExecSyncOptions = {}) {
         Logger.debug(() => {
             const { cwd, ...restOptions } = options
             const inCwd = cwd && cwd != process.cwd() ? ` in ${cwd.toString().green}` : ''
@@ -24,18 +24,24 @@ export class SysCallService {
     /**
      * `execSync` from `child_process` with inherited stdio and debug logging
      */
-    exec(command: string, options: ExecSyncOptions = {}) {
-        return this.execSync(command, { ...options, stdio: 'inherit' })
+    execInherit(command: string, options: ExecSyncOptions = {}) {
+        return this.exec(command, { ...options, stdio: 'inherit' })
     }
 
     /**
-     * Returns true if the command was successful
-     * Return false if the command failed
+     * `execSync` from `child_process` with piped stdio and debug logging
+     */
+    execPipe(command: string, options: ExecSyncOptions = {}) {
+        return this.exec(command, { ...options, stdio: 'pipe' })
+    }
+
+    /**
+     * - Returns true if the command was successful
+     * - Returns false if the command failed
      */
     testCommand = cacheable((command: string) => {
-        Logger.debug(`Testing command: ${command.cyan}`)
         try {
-            execSync(command, { stdio: 'ignore' })
+            this.exec(command, { stdio: 'ignore' })
             return true
         } catch {
             return false
