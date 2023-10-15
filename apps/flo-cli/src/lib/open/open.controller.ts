@@ -27,6 +27,8 @@ export class OpenController {
             return
         }
 
+        const noopTitle = options.noopTitle || 'Nevermind'
+        const noopCallback = () => Logger.log(noopTitle)
         const { openInSelected }: { openInSelected?: () => void } = await prompts({
             type: 'select',
             name: 'openInSelected',
@@ -45,15 +47,16 @@ export class OpenController {
                     ]
                 }),
                 options.noopTitle !== false && {
-                    title: options.noopTitle ?? 'Nevermind',
-                    value: () => undefined,
+                    title: noopTitle,
+                    value: noopCallback,
                     description: 'suit yourself then',
                 },
             ].filter(Boolean),
             instructions: false,
         })
 
-        openInSelected?.()
+        const callback = openInSelected || noopCallback
+        callback()
     }
 
     async openFile(

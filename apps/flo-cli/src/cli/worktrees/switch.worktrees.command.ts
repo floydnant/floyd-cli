@@ -1,52 +1,10 @@
 import { Command } from 'commander'
-import path from 'path'
-import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
+import { GitRepository } from '../../adapters/git'
+import { ConfigService } from '../../lib/config/config.service'
 import { ContextService } from '../../lib/config/context.service'
-import { OpenService } from '../../lib/open/open.service'
-import { OpenType } from '../../lib/open/open.types'
-import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
-import { runWorkflow } from '../../lib/workflows/run-workflow'
-import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
-import { WorktreeHook } from '../../lib/worktrees/worktree-config.schemas'
-import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
-
-// @TODO: @floydnant we should be able to checkout a new branch/PR from here
-const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
-    const gitRepo = GitRepository.getInstance()
-    const contextService = ContextService.getInstance()
-    // @TODO: this should be configurable
-    const openService = OpenService.getInstance().useFirstInstalled(OpenType.Vscode)
-
-    const worktrees = gitRepo.getWorktrees()
-    const workflow = getWorktreeHook(WorktreeHook.OnSwitch)
-    const openOpts = { reuseWindow: opts.reuseWindow }
-
-    if (opts.branch) {
-        const worktree = getWorktreeFromBranch(opts.branch, worktrees)
-        const folderPath = path.join(worktree.directory, opts.subDir || '')
-
-        if (workflow) {
-            contextService.context.newWorktreeRoot = worktree.directory
-            await runWorkflow(resolveWorkflow(workflow))
-        }
-
-        openService.open(folderPath, openOpts)
-        return
-    }
-
-    const selectedWorktrees = await selectWorktrees(worktrees, { multiple: false })
-    if (!selectedWorktrees?.length) return
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const worktree = selectedWorktrees[0]!
-
-    if (workflow) {
-        contextService.context.newWorktreeRoot = worktree.directory
-        await runWorkflow(resolveWorkflow(workflow))
-    }
-
-    const folderPath = path.join(worktree.directory, opts.subDir || '')
-    openService.open(folderPath, openOpts)
-}
+import { OpenController } from '../../lib/open/open.controller'
+import { OpenWorktreeController } from '../../lib/worktrees/open-worktree.controller'
+import { WorktreeService } from '../../lib/worktrees/worktree.service'
 
 export const switchCommand = new Command()
     .createCommand('switch')
@@ -55,7 +13,15 @@ export const switchCommand = new Command()
     .argument('[branch]', 'the branch to switch the worktree to')
     .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo')
     .action((branch, { subDir }: { subDir?: string }) => {
-        openWorktree({ branch, subDir, reuseWindow: true })
+        const gitRepo = GitRepository.getInstance()
+        const controller = OpenWorktreeController.init(
+            WorktreeService.init(gitRepo, ConfigService.getInstance()),
+            gitRepo,
+            ContextService.getInstance(),
+            OpenController.getInstance(),
+        )
+
+        controller.openWorktree({ branch, subDir, reuseWindow: true })
     })
 
 export const openCommand = new Command()
@@ -64,6 +30,15 @@ export const openCommand = new Command()
     .description('Open a worktree')
     .argument('[branch]', 'the branch to switch the worktree to')
     .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo')
-    .action((branch, { subDir }: { subDir?: string }) => {
-        openWorktree({ branch, subDir, reuseWindow: false })
+    .option('-r, --reuse-window', 'Reuse existing window (if supported by app)', false)
+    .action((branch, options: { subDir?: string; reuseWindow: boolean }) => {
+        const gitRepo = GitRepository.getInstance()
+        const controller = OpenWorktreeController.init(
+            WorktreeService.init(gitRepo, ConfigService.getInstance()),
+            gitRepo,
+            ContextService.getInstance(),
+            OpenController.getInstance(),
+        )
+
+        controller.openWorktree({ branch, ...options })
     })

@@ -12,7 +12,7 @@ export const openCommand = new Command()
     .createCommand('open')
     .description('Open project')
     .alias('o')
-    .option('-r, --reuse-window', 'Reuse existing VSCode window', false)
+    .option('-r, --reuse-window', 'Reuse existing window (if supported by app)', false)
     // @TODO:
     // .argument('[project-or-alias]', 'The projectId or alias')
     .action(async ({ reuseWindow }: { reuseWindow: boolean }) => {
