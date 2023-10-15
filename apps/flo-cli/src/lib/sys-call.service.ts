@@ -7,19 +7,25 @@ export class SysCallService {
     private constructor() {}
 
     /**
-     * `execSync` from `child_process` with logging
+     * `execSync` from `child_process` with debug logging
      */
     execSync(command: string, options: ExecSyncOptions = {}) {
-        Logger.getInstance().debug(`Executing: ${command.cyan}`)
+        Logger.debug(() => {
+            const { cwd, ...restOptions } = options
+            const inCwd = cwd && cwd != process.cwd() ? ` in ${cwd.toString().green}` : ''
+            return [
+                `Executing: ${command.cyan}${inCwd}`,
+                ...(Object.keys(restOptions).length > 0 ? ['with options:', restOptions] : []),
+            ]
+        })
         return execSync(command, options)?.toString()
     }
 
     /**
-     * `execSync` from `child_process` with inherited stdio and logging
+     * `execSync` from `child_process` with inherited stdio and debug logging
      */
     exec(command: string, options: ExecSyncOptions = {}) {
-        Logger.getInstance().debug(`Executing: ${command.cyan}`)
-        return execSync(command, { stdio: 'inherit', ...options })?.toString()
+        return this.execSync(command, { ...options, stdio: 'inherit' })
     }
 
     /**
@@ -27,7 +33,7 @@ export class SysCallService {
      * Return false if the command failed
      */
     testCommand = cacheable((command: string) => {
-        Logger.getInstance().debug(`Testing command: ${command.cyan}`)
+        Logger.debug(`Testing command: ${command.cyan}`)
         try {
             execSync(command, { stdio: 'ignore' })
             return true

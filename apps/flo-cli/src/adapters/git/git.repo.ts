@@ -70,7 +70,9 @@ export class GitRepository {
 
     getWorktrees = cacheable(
         handleGitErrors({ fallbackValue: [] as Worktree[] }, (options?: { cwd?: string }): Worktree[] => {
-            const output = this.sysCallService.execSync('git worktree list --porcelain', options).trim()
+            const output = this.sysCallService
+                .execSync('git worktree list --porcelain', { cwd: options?.cwd, stdio: 'pipe' })
+                .trim()
             const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
             const repoRootDir = this.getRepoRootDir(options?.cwd)
             const cwd = process.cwd()
@@ -132,7 +134,9 @@ export class GitRepository {
 
     getRepoRootDir = cacheable(
         handleGitErrors({ fallbackValue: null }, (cwd: string = process.cwd()) => {
-            const gitDir = this.sysCallService.execSync('git rev-parse --git-dir', { cwd }).toString().trim()
+            const gitDir = this.sysCallService
+                .execSync('git rev-parse --git-dir', { cwd, stdio: 'pipe' })
+                .trim()
             const isAbsolute = path.isAbsolute(gitDir)
             const joined = path.join(cwd, gitDir)
             const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
@@ -142,9 +146,7 @@ export class GitRepository {
     )
 
     getGitStatus = cacheable((directory?: string) => {
-        return this.sysCallService
-            .execSync((directory ? `cd ${directory} && ` : '') + 'git status --short')
-            .trim()
+        return this.sysCallService.execSync('git status --short', { cwd: directory }).trim()
     })
 
     getCommitLogs = cacheable((dir?: string, limit?: number) => {

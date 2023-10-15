@@ -50,8 +50,13 @@ export class Logger {
         return Logger
     }).bind(Logger) as (message: string, ...agrs: unknown[]) => typeof Logger
 
-    static debug = ((...args: unknown[]) => {
-        if (LogLevel.DEBUG == Logger.logLevel) console.debug('DEBUG:'.bgYellow.black, ...args)
+    static debug = ((message: string | (() => string | [string, ...unknown[]]), ...args: unknown[]) => {
+        if (LogLevel.DEBUG != Logger.logLevel) return
+
+        const messageResult = typeof message === 'function' ? message() : message
+        const messageAndMore = Array.isArray(messageResult) ? messageResult : [messageResult]
+        console.debug('DEBUG:'.bgYellow.black, ...messageAndMore, ...args)
+
         return Logger
     }).bind(Logger) as (...agrs: unknown[]) => typeof Logger
 }
