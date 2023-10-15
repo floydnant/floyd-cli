@@ -4,7 +4,6 @@ import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
 import { ContextService } from '../../lib/config/context.service'
 import { OpenService } from '../../lib/open/open.service'
 import { OpenType } from '../../lib/open/open.types'
-import { SysCallService } from '../../lib/sys-call.service'
 import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 import { runWorkflow } from '../../lib/workflows/run-workflow'
 import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
@@ -15,7 +14,7 @@ import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
 const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
     const gitRepo = GitRepository.getInstance()
     const contextService = ContextService.getInstance()
-    const openService = OpenService.init(SysCallService.getInstance()).useFirst(OpenType.Vscode)
+    const openService = OpenService.getInstance().useFirst(OpenType.Vscode)
 
     const worktrees = gitRepo.getWorktrees()
     const workflow = getWorktreeHook(WorktreeHook.OnSwitch)

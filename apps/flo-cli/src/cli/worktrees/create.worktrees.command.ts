@@ -8,7 +8,6 @@ import { ContextService } from '../../lib/config/context.service'
 import { Logger } from '../../lib/logger.service'
 import { OpenService } from '../../lib/open/open.service'
 import { OpenType } from '../../lib/open/open.types'
-import { SysCallService } from '../../lib/sys-call.service'
 import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
 import { runWorkflow } from '../../lib/workflows/run-workflow'
 import { selectBranch } from '../../lib/worktrees/select-branch'
@@ -32,7 +31,7 @@ const createWorktree = async (
 ) => {
     const gitRepo = GitRepository.getInstance()
     const contextService = ContextService.getInstance()
-    const openService = new OpenService(SysCallService.getInstance()).useFirst(OpenType.Vscode)
+    const openService = OpenService.getInstance().useFirst(OpenType.Vscode)
 
     const worktrees = gitRepo.getWorktrees()
     const useRemoteBranches = !!opts.upstreamBranch || !!opts.pullRequest

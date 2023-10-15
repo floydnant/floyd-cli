@@ -1,5 +1,5 @@
-import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
+import { SysCallService } from '../sys-call.service'
 import { OpenDefaultService } from './open-default.service'
 import { OpenNanoService } from './open-nano.service'
 import { OpenNeovimService } from './open-nvim.service'

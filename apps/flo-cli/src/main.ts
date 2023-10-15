@@ -15,6 +15,7 @@ import { projectsCommand } from './cli/projects'
 import { SysCallService } from './lib/sys-call.service'
 import { GitRepository } from './adapters/git'
 import { ContextService } from './lib/config/context.service'
+import { OpenService } from './lib/open/open.service'
 
 const cli = new Command()
 
@@ -33,6 +34,7 @@ cli.hook('preAction', thisCommand => {
     const sysCallService = SysCallService.getInstance()
     const gitRepo = GitRepository.init(sysCallService)
     ContextService.init(gitRepo)
+    OpenService.init(sysCallService)
     const configService = ConfigService.init()
 
     const logLevel = thisCommand.opts()['debug'] ? LogLevel.DEBUG : configService.config.logLevel

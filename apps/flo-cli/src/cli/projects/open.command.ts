@@ -7,7 +7,6 @@ import { OpenType } from '../../lib/open/open.types'
 import { selectProject } from '../../lib/projects/project.utils'
 import { ProjectsService } from '../../lib/projects/projects.service'
 import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
-import { SysCallService } from '../../lib/sys-call.service'
 
 export const openCommand = new Command()
     .createCommand('open')
@@ -20,7 +19,7 @@ export const openCommand = new Command()
         const gitRepo = GitRepository.getInstance()
         const projectsService = new ProjectsService(gitRepo)
         const configService = ConfigService.getInstance()
-        const openService = OpenService.init(SysCallService.getInstance()).useFirst(OpenType.Vscode)
+        const openService = OpenService.getInstance().useFirst(OpenType.Vscode)
 
         const projectMap = configService.config.projects
         if (!projectMap || Object.keys(projectMap).length == 0) {
