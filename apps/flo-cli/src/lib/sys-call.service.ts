@@ -48,6 +48,23 @@ export class SysCallService {
         }
     })
 
+    /**
+     * - Returns true if the application is installed (one or more matched fileNames)
+     * - Returns false if the command failed or 0 fileNames matched
+     */
+    testApplication = cacheable((appFileName: string) => {
+        try {
+            // const lines = this.execSync(`mdfind -name '${appFileName}' -count`, { stdio: 'pipe' }).split('\n')
+            const lines = this.execPipe(
+                `mdfind "kMDItemKind == 'Application'" | grep '${appFileName}'`,
+            ).split('\n')
+
+            return lines.length > 0
+        } catch {
+            return false
+        }
+    })
+
     private static instance = new SysCallService()
     static getInstance() {
         if (!this.instance) throw new Error(`${SysCallService.name} not initialized`)

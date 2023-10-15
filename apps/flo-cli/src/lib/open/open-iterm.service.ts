@@ -2,36 +2,37 @@ import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenPort, OpenType } from './open.types'
 
-export class OpenVimService implements OpenPort {
+export class OpenItermService implements OpenPort {
     constructor(private sysCallService: SysCallService) {}
 
-    name = OpenType.Vim
+    name = OpenType.Iterm
     isReuseWindowSupported = false
-    isFilesSupported = true
+    isFilesSupported = false
     isFoldersSupported = true
     isUrlsSupported = false
 
     open(directory: string, options?: { reuseWindow?: boolean }) {
         this.assertInstalled()
 
-        if (options?.reuseWindow) Logger.getInstance().warn('Reusing windows is not supported with vim.')
+        if (options?.reuseWindow) Logger.getInstance().warn('Reusing windows is not supported with iTerm.')
 
-        Logger.getInstance().log(`Opening ${directory.green} with vim...`.dim)
+        Logger.getInstance().log(`Opening ${directory.green} with iTerm...`.dim)
         try {
-            this.sysCallService.execInherit(`vim ${directory}`)
+            this.sysCallService.execInherit(`open -a ${this.appName} ${directory}`)
             return true
         } catch (e) {
-            Logger.error(`Failed to open ${directory} in vim.`.red)
+            Logger.error(`Failed to open ${directory} in iTerm.`.red)
             Logger.debug(e)
             return false
         }
     }
+    private appName = 'iTerm.app'
 
-    isInstalled = () => this.sysCallService.testCommand('vim --version')
+    isInstalled = () => this.sysCallService.testApplication(this.appName)
     assertInstalled() {
         if (this.isInstalled()) return
 
-        Logger.error('Please install vim'.red)
+        Logger.error('Please install iTerm'.red)
         process.exit(1)
     }
 }

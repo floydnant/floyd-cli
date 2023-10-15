@@ -19,7 +19,8 @@ export const openCommand = new Command()
         const gitRepo = GitRepository.getInstance()
         const projectsService = new ProjectsService(gitRepo)
         const configService = ConfigService.getInstance()
-        const openService = OpenService.getInstance().useFirst(OpenType.Vscode)
+        // @TODO: this should be configurable
+        const openService = OpenService.getInstance().useFirstInstalled(OpenType.Vscode)
 
         const projectMap = configService.config.projects
         if (!projectMap || Object.keys(projectMap).length == 0) {

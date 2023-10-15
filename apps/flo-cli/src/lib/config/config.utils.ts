@@ -75,5 +75,5 @@ export const editConfig = () => {
     Logger.getInstance().verbose('Opening config file '.dim, globalPaths.configFile.yellow)
 
     // @TODO: this should be in the config service
-    OpenService.getInstance().useFirst(OpenType.Neovim).open(globalPaths.configFile)
+    OpenService.getInstance().useFirstInstalled(OpenType.Neovim).open(globalPaths.configFile)
 }

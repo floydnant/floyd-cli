@@ -1,11 +1,12 @@
 import { Logger } from '../logger.service'
 import { SysCallService } from '../sys-call.service'
 import { OpenDefaultService } from './open-default.service'
+import { OpenItermService } from './open-iterm.service'
 import { OpenNanoService } from './open-nano.service'
 import { OpenNeovimService } from './open-nvim.service'
 import { OpenVimService } from './open-vim.service'
 import { OpenVscodeService } from './open-vscode.service'
-import { OpenServiceConstructor, OpenType } from './open.types'
+import { OpenPort, OpenServiceConstructor, OpenType } from './open.types'
 
 // @TODO: this needs to get its own file
 export interface InstalledCommandPort {
@@ -18,6 +19,7 @@ const openServiceMap: Record<OpenType, OpenServiceConstructor> = {
     [OpenType.Neovim]: OpenNeovimService,
     [OpenType.Vim]: OpenVimService,
     [OpenType.Nano]: OpenNanoService,
+    [OpenType.Iterm]: OpenItermService,
     [OpenType.Default]: OpenDefaultService,
 }
 
@@ -29,11 +31,15 @@ export class OpenService {
         const openService = new openServiceMap[openType](this.sysCallService)
         if (openService.isInstalled()) return openService
 
-        Logger.log(`App ${openType.cyan} not installed, falling back to default`)
-        return new openServiceMap[OpenType.Default](this.sysCallService)
+        const defaultApp = new openServiceMap[OpenType.Default](this.sysCallService)
+        Logger.log(`${openType.cyan} not installed, falling back to ${defaultApp.name.cyan}`)
+        return defaultApp
+    }
+    useDefault() {
+        return this.use(OpenType.Default)
     }
 
-    useFirst(...prioritizedOpenTypes: OpenType[]) {
+    useFirstInstalled(...prioritizedOpenTypes: OpenType[]) {
         const openTypes = new Set([...prioritizedOpenTypes, ...Object.values(OpenType)])
 
         for (const openType of openTypes) {
@@ -50,6 +56,17 @@ export class OpenService {
                 .join(', ')}`,
         )
         process.exit(1)
+    }
+
+    useAllInstalled(predicate: (openPort: OpenPort) => boolean = () => true) {
+        const openTypes = Object.values(OpenType)
+        const installedOpenTypes = openTypes
+            .map(openType => new openServiceMap[openType](this.sysCallService))
+            .filter(openPort => predicate(openPort) && openPort.isInstalled())
+
+        if (installedOpenTypes.length === 0) installedOpenTypes.push(this.useDefault())
+
+        return installedOpenTypes
     }
 
     private static instance: OpenService

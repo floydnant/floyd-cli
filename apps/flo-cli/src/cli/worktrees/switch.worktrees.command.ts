@@ -14,7 +14,8 @@ import { getWorktreeHook } from '../../lib/worktrees/worktree-hooks'
 const openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
     const gitRepo = GitRepository.getInstance()
     const contextService = ContextService.getInstance()
-    const openService = OpenService.getInstance().useFirst(OpenType.Vscode)
+    // @TODO: this should be configurable
+    const openService = OpenService.getInstance().useFirstInstalled(OpenType.Vscode)
 
     const worktrees = gitRepo.getWorktrees()
     const workflow = getWorktreeHook(WorktreeHook.OnSwitch)
