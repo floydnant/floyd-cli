@@ -1,11 +1,11 @@
 import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
-import { OpenPort, OpenType } from './open.types'
+import { OpenPort } from './open.types'
 
 export class OpenVscodeService implements OpenPort {
     constructor(private sysCallService: SysCallService) {}
 
-    name = OpenType.Vscode
+    name = 'vscode'
     get isReuseWindowSupported() {
         return this.isCliInstalled()
     }

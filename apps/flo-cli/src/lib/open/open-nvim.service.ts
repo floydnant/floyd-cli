@@ -1,11 +1,11 @@
-import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
-import { OpenPort, OpenType } from './open.types'
+import { SysCallService } from '../sys-call.service'
+import { OpenPort } from './open.types'
 
 export class OpenNeovimService implements OpenPort {
     constructor(private sysCallService: SysCallService) {}
 
-    name = OpenType.Neovim
+    name = 'neovim'
     isReuseWindowSupported = false
     isFilesSupported = true
     isFoldersSupported = true

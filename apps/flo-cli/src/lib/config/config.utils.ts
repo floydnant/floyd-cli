@@ -4,8 +4,7 @@ import { z } from 'zod'
 import { interpolateVariables, stripJsonComments } from '../../../../../packages/common/src'
 import env from '../../../env.json'
 import { Logger } from '../logger.service'
-import { OpenService } from '../open/open.service'
-import { OpenType } from '../open/open.types'
+import { OpenController } from '../open/open.controller'
 import { indent } from '../utils'
 import { globalConfigSchema } from './config.schemas'
 import { DEFAULT_LOG_LEVEL, globalPaths } from './config.vars'
@@ -75,5 +74,5 @@ export const editConfig = () => {
     Logger.getInstance().verbose('Opening config file '.dim, globalPaths.configFile.yellow)
 
     // @TODO: this should be in the config service
-    OpenService.getInstance().useFirstInstalled(OpenType.Neovim).open(globalPaths.configFile)
+    OpenController.getInstance().openFile(globalPaths.configFile)
 }

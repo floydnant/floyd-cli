@@ -2,7 +2,13 @@ import '@total-typescript/ts-reset'
 import prompts from 'prompts'
 import { Logger } from '../logger.service'
 import { OpenService } from './open.service'
-import { OpenPort } from './open.types'
+import { OpenPort, OpenType } from './open.types'
+
+const portPredicateMap: Record<OpenType, (port: OpenPort) => boolean> = {
+    file: port => port.isFilesSupported,
+    folder: port => port.isFoldersSupported,
+    url: port => port.isUrlsSupported,
+}
 
 export class OpenController {
     /** Do not use this constructor directly, use `.init()` instead */
@@ -12,13 +18,13 @@ export class OpenController {
         url: string
         reuseWindow?: boolean
         message?: string
-        subject: string
+        type: OpenType
+        subject?: string
         noopTitle?: string | false
-        portsPredicate: (port: OpenPort) => boolean
     }) {
         const openPorts = this.openService.useAllInstalled(
             openPort =>
-                options.portsPredicate(openPort) &&
+                portPredicateMap[options.type](openPort) &&
                 (options?.reuseWindow ? openPort.isReuseWindowSupported : true),
         )
         if (openPorts.length == 1) {
@@ -34,18 +40,17 @@ export class OpenController {
             name: 'openInSelected',
             message: options.message || `How would you like to open ${options.url.green}?`,
             choices: [
-                ...openPorts.flatMap(openPort => {
-                    return [
-                        openPort.isReuseWindowSupported && {
+                ...openPorts.flatMap(openPort => [
+                    openPort.isReuseWindowSupported &&
+                        options.type == OpenType.Folder && {
                             title: `Open ${options.subject} in ${openPort.name} (reuse window)`,
                             value: () => openPort.open(options.url, { reuseWindow: true }),
                         },
-                        {
-                            title: `Open ${options.subject} in ${openPort.name}`,
-                            value: () => openPort.open(options.url),
-                        },
-                    ]
-                }),
+                    {
+                        title: `Open ${options.subject} in ${openPort.name}`,
+                        value: () => openPort.open(options.url),
+                    },
+                ]),
                 options.noopTitle !== false && {
                     title: noopTitle,
                     value: noopCallback,
@@ -59,17 +64,13 @@ export class OpenController {
         callback()
     }
 
-    async openFile(
-        directory: string,
-        options?: { reuseWindow?: boolean; message?: string; subject?: string; noopTitle?: string },
-    ) {
+    async openFile(file: string, options?: { message?: string; subject?: string; noopTitle?: string }) {
         return await this.selectPortAndOpen({
-            url: directory,
-            reuseWindow: options?.reuseWindow,
+            url: file,
+            type: OpenType.File,
             message: options?.message,
-            subject: options?.subject || 'file',
+            subject: options?.subject,
             noopTitle: options?.noopTitle,
-            portsPredicate: port => port.isFilesSupported,
         })
     }
 
@@ -79,21 +80,21 @@ export class OpenController {
     ) {
         return await this.selectPortAndOpen({
             url: directory,
+            type: OpenType.Folder,
             reuseWindow: options?.reuseWindow,
             message: options?.message,
-            subject: options?.subject || 'folder',
+            subject: options?.subject,
             noopTitle: options?.noopTitle,
-            portsPredicate: port => port.isFoldersSupported,
         })
     }
 
     async openUrl(url: string, options?: { message?: string; subject?: string; noopTitle?: string }) {
         return await this.selectPortAndOpen({
             url,
+            type: OpenType.Url,
             message: options?.message,
-            subject: options?.subject || 'url',
+            subject: options?.subject,
             noopTitle: options?.noopTitle,
-            portsPredicate: port => port.isUrlsSupported,
         })
     }
 

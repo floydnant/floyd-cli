@@ -115,7 +115,7 @@ export class CreateWorktreeController {
 
         Logger.log()
         const folderPath = path.join(worktree.directory, opts.subDir || '')
-        this.openController.openFolder(folderPath, {
+        await this.openController.openFolder(folderPath, {
             subject: 'worktree',
             message: 'Your worktree is ready! What next?',
             noopTitle: 'Do nothing',

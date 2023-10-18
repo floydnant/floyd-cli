@@ -2,8 +2,7 @@ import { Command } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
 import { Logger } from '../../lib/logger.service'
-import { OpenService } from '../../lib/open/open.service'
-import { OpenType } from '../../lib/open/open.types'
+import { OpenController } from '../../lib/open/open.controller'
 import { selectProject } from '../../lib/projects/project.utils'
 import { ProjectsService } from '../../lib/projects/projects.service'
 import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
@@ -20,7 +19,7 @@ export const openCommand = new Command()
         const projectsService = new ProjectsService(gitRepo)
         const configService = ConfigService.getInstance()
         // @TODO: this should be configurable
-        const openService = OpenService.getInstance().useFirstInstalled(OpenType.Vscode)
+        const openController = OpenController.getInstance()
 
         const projectMap = configService.config.projects
         if (!projectMap || Object.keys(projectMap).length == 0) {
@@ -34,7 +33,7 @@ export const openCommand = new Command()
         if (!selectedProject) return
 
         if (selectedProject.worktrees.length == 1) {
-            openService.open(selectedProject.projectConfig.root, { reuseWindow })
+            openController.openFolder(selectedProject.projectConfig.root, { reuseWindow })
             return
         }
 
@@ -44,5 +43,5 @@ export const openCommand = new Command()
         })
         if (!result?.[0]) return
 
-        openService.open(result[0].directory, { reuseWindow })
+        openController.openFolder(result[0].directory, { reuseWindow })
     })
