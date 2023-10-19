@@ -46,7 +46,7 @@ const handleGitErrors = <TArgs extends unknown[], TReturn, TFallback>(
     options: { fallbackValue: TFallback },
     callback: (...args: TArgs) => TReturn,
 ) => {
-    return (...args: TArgs) => {
+    return (...args: TArgs): TReturn | TFallback => {
         try {
             // @TODO: @floydnant lets see, not `await`ing here might be a problem
             return callback(...args)
@@ -160,22 +160,27 @@ export class GitRepository {
         }
     }
 
+    // @TODO: remove logging
     /** `git branch <branchName>` */
     createBranch(branchName: string, message: string | null = `Creating branch ${branchName.green}...`.dim) {
         if (message !== null) Logger.getInstance().log(message)
         this.sysCallService.execInherit(`git branch ${branchName}`)
     }
 
-    deleteBranch(branchName: string, loggerMessage: string | null = `Deleted branch ${branchName}`) {
-        this.sysCallService.exec(`git branch -d ${branchName}`)
-        if (loggerMessage !== null) Logger.getInstance().verbose(loggerMessage)
+    // @TODO: remove logging
+    deleteBranch(branch: string, force = false) {
+        const output = this.sysCallService.execPipe(`git branch ${force ? '-D' : '-d'} ${branch}`)
+        const highlighted = output.replace(branch, match => match.yellow)
+        Logger.log(highlighted)
     }
 
+    // @TODO: remove logging
     gitFetch(upstream?: string) {
-        Logger.getInstance().verbose(`\nFetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
+        Logger.verbose(`Fetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
         this.sysCallService.execInherit(`git fetch ${upstream || ''}`)
     }
 
+    // @TODO: remove logging
     gitPull(upstream?: string, workingDir?: string) {
         const upstreamText = upstream ? ' from ' + upstream.magenta : ''
         try {
@@ -187,8 +192,7 @@ export class GitRepository {
     }
 
     gitCheckout(branchName: string, workingDir?: string) {
-        Logger.getInstance().log()
-        return this.sysCallService.exec(`git checkout ${branchName}`, { cwd: workingDir })
+        return this.sysCallService.execPipe(`git checkout ${branchName}`, { cwd: workingDir })
     }
 
     private static instance: GitRepository

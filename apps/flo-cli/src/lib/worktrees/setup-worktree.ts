@@ -45,7 +45,7 @@ export const setupWorktree = (opts: {
         gitRepo.gitCheckout(opts.branchToCheckout, worktreePath)
         worktreeBranch = opts.branchToCheckout
 
-        gitRepo.deleteBranch(worktreeName, null)
+        gitRepo.deleteBranch(worktreeName)
     } else if (opts.pullRequestToCheckout && opts.pullRequestToCheckout != worktreeBranch) {
         assertGitHubInstalled()
 
@@ -53,7 +53,7 @@ export const setupWorktree = (opts: {
         sysCallService.execInherit(`gh pr checkout ${opts.pullRequestToCheckout}`, { cwd: worktreePath })
         worktreeBranch = gitRepo.getCurrentBranch(worktreePath)
 
-        gitRepo.deleteBranch(worktreeName, null)
+        gitRepo.deleteBranch(worktreeName)
     }
 
     return {
