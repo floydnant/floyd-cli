@@ -1,8 +1,8 @@
 import prompts from 'prompts'
 import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
+import { GitController } from '../git.controller'
 import { Logger } from '../logger.service'
 import { SysCallService } from '../sys-call.service'
-import { selectWorktrees } from './select-worktrees'
 import { WorktreeService } from './worktree.service'
 
 export class DeleteWorktreeController {
@@ -10,6 +10,7 @@ export class DeleteWorktreeController {
     constructor(
         private worktreeService: WorktreeService,
         private gitRepo: GitRepository,
+        private gitController: GitController,
         private sysCallService: SysCallService,
     ) {}
 
@@ -56,10 +57,8 @@ export class DeleteWorktreeController {
             if (!deleteBranch) return
 
             try {
-                // @TODO: this must be a gitRepo operation
-                this.sysCallService.execInherit(
-                    `git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${worktree.branch}`,
-                )
+                // @TODO: this must be a gitService operation
+                this.gitRepo.deleteBranch(worktree.branch, opts.forceDeleteBranch)
             } catch (e) {
                 Logger.debug(e)
                 Logger.error(`Failed to delete branch ${opts.branch}`)
@@ -67,16 +66,14 @@ export class DeleteWorktreeController {
             return
         }
 
-        const removeableWorktrees = worktrees.filter(tree => !tree.isMainWorktree)
-        if (!removeableWorktrees.length) {
+        const selectedTrees = await this.gitController.selectMultipleWorktrees('Select worktrees to remove', {
+            filter: tree => !tree.isMainWorktree,
+        })
+        // @TODO: this will potentially log twice since the `selectMultipleWorktrees` call already logs a message
+        if (!selectedTrees?.length) {
             Logger.log('No worktrees to remove')
             return
         }
-
-        const selectedTrees = await selectWorktrees(removeableWorktrees, {
-            message: 'Select worktrees to remove',
-        })
-        if (!selectedTrees?.length) return
 
         const { deleteBranch } =
             optsDelete ||
@@ -103,14 +100,11 @@ export class DeleteWorktreeController {
             )
 
             if (deleteBranch && tree.branch) {
+                // @TODO: this must be a gitService operation
                 try {
-                    // @TODO: this must be a gitRepo operation
-                    this.sysCallService.execInherit(
-                        `git branch ${opts.forceDeleteBranch ? '-D' : '-d'} ${tree.branch}`,
-                    )
+                    this.gitRepo.deleteBranch(tree.branch, opts.forceDeleteBranch)
                 } catch (e) {
-                    Logger.debug(e)
-                    Logger.error(`Failed to delete branch ${tree.branch}`)
+                    Logger.error(`Failed to delete branch ${tree.branch}`, e)
                 }
             }
         })

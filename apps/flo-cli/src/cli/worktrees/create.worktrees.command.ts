@@ -6,6 +6,7 @@ import { ContextService } from '../../lib/config/context.service'
 import { OpenController } from '../../lib/open/open.controller'
 import { CreateWorktreeController } from '../../lib/worktrees/create-worktree.controller'
 import { WorktreeService } from '../../lib/worktrees/worktree.service'
+import { GitController } from '../../lib/git.controller'
 
 export const createWorktreeCommand = new Command()
     .createCommand('create')
@@ -45,6 +46,7 @@ export const createWorktreeCommand = new Command()
             const controller = CreateWorktreeController.init(
                 WorktreeService.init(gitRepo, ConfigService.getInstance()),
                 gitRepo,
+                GitController.getInstance(),
                 ContextService.getInstance(),
                 OpenController.getInstance(),
             )

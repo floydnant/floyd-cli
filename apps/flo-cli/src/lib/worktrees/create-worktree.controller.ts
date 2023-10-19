@@ -3,11 +3,11 @@ import path from 'path'
 import { GitRepository, assertGitHubInstalled } from '../../adapters/git'
 import { getOpenPullRequests, getPullRequest } from '../../adapters/github'
 import { ContextService } from '../config/context.service'
+import { GitController } from '../git.controller'
 import { Logger } from '../logger.service'
 import { OpenController } from '../open/open.controller'
 import { resolveWorkflow } from '../workflows/resolve-workflow'
 import { runWorkflow } from '../workflows/run-workflow'
-import { selectBranch } from './select-branch'
 import { selectPullRequest } from './select-pull-request'
 import { setupWorktree } from './setup-worktree'
 import { WorktreeHook } from './worktree-config.schemas'
@@ -19,6 +19,7 @@ export class CreateWorktreeController {
     constructor(
         private worktreeService: WorktreeService,
         private gitRepo: GitRepository,
+        private gitController: GitController,
         private contextService: ContextService,
         private openController: OpenController,
     ) {}
@@ -37,7 +38,8 @@ export class CreateWorktreeController {
     }) => {
         const worktrees = this.gitRepo.getWorktrees()
         const useRemoteBranches = !!opts.upstreamBranch || !!opts.pullRequest
-        const branches = this.gitRepo.getBranches(useRemoteBranches)
+        // @TODO: we need to look for remote branches differently
+        // const branches = this.gitRepo.getBranches(useRemoteBranches)
 
         let branch = typeof opts.upstreamBranch == 'string' ? opts.upstreamBranch : opts.branch
 
@@ -57,11 +59,10 @@ export class CreateWorktreeController {
             Logger.verbose(`\nFound pull request ${('#' + pr.number).magenta} ${pr.title}`.dim)
         }
 
+        // eslint-disable-next-line no-unused-labels
         branchingScope: if (!branch) {
-            const branchSelection = await selectBranch({
+            const branchSelection = await this.gitController.selectBranch({
                 message: `Select a${useRemoteBranches ? ' remote' : ''} branch to create a worktree from`,
-                branches,
-                worktrees,
                 allowNewBranch: !useRemoteBranches,
             })
 
@@ -70,14 +71,8 @@ export class CreateWorktreeController {
                 process.exit(1)
             }
 
-            if ('existing' in branchSelection) {
-                branch = branchSelection.existing
-                break branchingScope
-            }
-
-            branch = branchSelection.new
-
-            this.gitRepo.createBranch(branch)
+            branch = branchSelection.branch
+            if (branchSelection.isNew) this.gitRepo.createBranch(branch)
         }
         if (!branch) return
 

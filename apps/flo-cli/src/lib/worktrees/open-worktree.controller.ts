@@ -1,10 +1,10 @@
 import path from 'path'
 import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
 import { ContextService } from '../config/context.service'
+import { GitController } from '../git.controller'
 import { OpenController } from '../open/open.controller'
 import { resolveWorkflow } from '../workflows/resolve-workflow'
 import { runWorkflow } from '../workflows/run-workflow'
-import { selectWorktrees } from './select-worktrees'
 import { WorktreeHook } from './worktree-config.schemas'
 import { WorktreeService } from './worktree.service'
 
@@ -13,6 +13,7 @@ export class OpenWorktreeController {
     constructor(
         private worktreeService: WorktreeService,
         private gitRepo: GitRepository,
+        private gitController: GitController,
         private contextService: ContextService,
         private openController: OpenController,
     ) {}
@@ -36,10 +37,8 @@ export class OpenWorktreeController {
             return
         }
 
-        const selectedWorktrees = await selectWorktrees(worktrees, { multiple: false })
-        if (!selectedWorktrees?.length) return
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const worktree = selectedWorktrees[0]!
+        const worktree = await this.gitController.selectWorktree('Select a worktree to open')
+        if (!worktree) return
 
         if (workflow) {
             this.contextService.context.newWorktreeRoot = worktree.directory

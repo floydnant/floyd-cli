@@ -53,15 +53,21 @@ export const getFlags = (...argsArr: Record<string, string | number | boolean | 
 
 export const getCacheKey = (stuff: object | undefined) => JSON.stringify(stuff || {})
 
+// @TODO: this should be called `memoized`
 export const cacheable = <TArgs extends unknown[], TReturn>(callback: (...args: TArgs) => TReturn) => {
-    const cache: { [key: string]: TReturn } = {}
-    return (...args: TArgs) => {
-        const cacheKey = getCacheKey(args)
-        if (!cache[cacheKey]) cache[cacheKey] = callback(...args)
-
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return cache[cacheKey]!
+    let cache: { [key: string]: TReturn } = {}
+    const resetCache = () => {
+        cache = {}
     }
+
+    const memoizedCallback = (...args: TArgs) => {
+        const cacheKey = getCacheKey(args)
+        if (!(cacheKey in cache)) cache[cacheKey] = callback(...args)
+
+        return cache[cacheKey] as TReturn
+    }
+
+    return Object.assign(memoizedCallback, { resetCache })
 }
 
 export const isNumber = (value: string) => !isNaN(parseInt(value))

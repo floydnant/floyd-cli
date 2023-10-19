@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
+import { GitController } from '../../lib/git.controller'
 import { SysCallService } from '../../lib/sys-call.service'
 import { DeleteWorktreeController } from '../../lib/worktrees/delete-worktree.controller'
 import { WorktreeService } from '../../lib/worktrees/worktree.service'
@@ -23,6 +24,7 @@ export const deleteWorktreeCommand = new Command()
             const controller = DeleteWorktreeController.init(
                 WorktreeService.init(gitRepo, configService),
                 gitRepo,
+                GitController.getInstance(),
                 SysCallService.getInstance(),
             )
 

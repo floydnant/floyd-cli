@@ -2,6 +2,7 @@ import { Command } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
 import { ContextService } from '../../lib/config/context.service'
+import { GitController } from '../../lib/git.controller'
 import { OpenController } from '../../lib/open/open.controller'
 import { OpenWorktreeController } from '../../lib/worktrees/open-worktree.controller'
 import { WorktreeService } from '../../lib/worktrees/worktree.service'
@@ -17,6 +18,7 @@ export const switchCommand = new Command()
         const controller = OpenWorktreeController.init(
             WorktreeService.init(gitRepo, ConfigService.getInstance()),
             gitRepo,
+            GitController.getInstance(),
             ContextService.getInstance(),
             OpenController.getInstance(),
         )
@@ -36,6 +38,7 @@ export const openCommand = new Command()
         const controller = OpenWorktreeController.init(
             WorktreeService.init(gitRepo, ConfigService.getInstance()),
             gitRepo,
+            GitController.getInstance(),
             ContextService.getInstance(),
             OpenController.getInstance(),
         )

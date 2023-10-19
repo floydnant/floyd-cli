@@ -1,11 +1,11 @@
 import { Command } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
+import { GitController } from '../../lib/git.controller'
 import { Logger } from '../../lib/logger.service'
 import { OpenController } from '../../lib/open/open.controller'
 import { selectProject } from '../../lib/projects/project.utils'
 import { ProjectsService } from '../../lib/projects/projects.service'
-import { selectWorktrees } from '../../lib/worktrees/select-worktrees'
 
 export const openCommand = new Command()
     .createCommand('open')
@@ -18,6 +18,7 @@ export const openCommand = new Command()
         const gitRepo = GitRepository.getInstance()
         const projectsService = new ProjectsService(gitRepo)
         const configService = ConfigService.getInstance()
+        const gitController = GitController.getInstance()
         // @TODO: this should be configurable
         const openController = OpenController.getInstance()
 
@@ -37,11 +38,8 @@ export const openCommand = new Command()
             return
         }
 
-        const result = await selectWorktrees(selectedProject.worktrees, {
-            message: 'Select worktree to open',
-            multiple: false,
-        })
-        if (!result?.[0]) return
+        const selectedWorktree = await gitController.selectWorktree('Select a worktree to open')
+        if (!selectedWorktree) return
 
-        openController.openFolder(result[0].directory, { reuseWindow })
+        openController.openFolder(selectedWorktree.directory, { reuseWindow })
     })

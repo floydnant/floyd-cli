@@ -17,6 +17,9 @@ import { GitRepository } from './adapters/git'
 import { ContextService } from './lib/config/context.service'
 import { OpenService } from './lib/open/open.service'
 import { OpenController } from './lib/open/open.controller'
+import { GitController } from './lib/git.controller'
+import { GitService } from './lib/git.service'
+import { PromptController } from './lib/prompt.controller'
 
 const cli = new Command()
 
@@ -34,6 +37,9 @@ cli.option('--debug', 'enable debug logging', false)
 cli.hook('preAction', thisCommand => {
     const sysCallService = SysCallService.getInstance()
     const gitRepo = GitRepository.init(sysCallService)
+    const promptController = PromptController.init()
+    const gitService = GitService.init(gitRepo)
+    GitController.init(gitRepo, gitService, promptController)
     ContextService.init(gitRepo)
     OpenController.init(OpenService.init(sysCallService))
     const configService = ConfigService.init()
