@@ -1,6 +1,8 @@
 import '@total-typescript/ts-reset'
+import os from 'os'
 import prompts from 'prompts'
 import { Logger } from '../logger.service'
+import { getRelativePathOf } from '../utils'
 import { OpenService } from './open.service'
 import { OpenPort, OpenType } from './open.types'
 
@@ -66,7 +68,7 @@ export class OpenController {
 
     async openFile(file: string, options?: { message?: string; subject?: string; noopTitle?: string }) {
         return await this.selectPortAndOpen({
-            url: file,
+            url: getRelativePathOf(file, os.homedir()),
             type: OpenType.File,
             message: options?.message,
             subject: options?.subject,
@@ -79,7 +81,7 @@ export class OpenController {
         options?: { reuseWindow?: boolean; message?: string; subject?: string; noopTitle?: string },
     ) {
         return await this.selectPortAndOpen({
-            url: directory,
+            url: getRelativePathOf(directory, os.homedir()),
             type: OpenType.Folder,
             reuseWindow: options?.reuseWindow,
             message: options?.message,

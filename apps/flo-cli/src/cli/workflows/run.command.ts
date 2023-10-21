@@ -2,14 +2,28 @@ import { Command } from 'commander'
 import { ConfigService } from '../../lib/config/config.service'
 import { Logger } from '../../lib/logger.service'
 import { printStepsOf } from '../../lib/workflows/print-workflow'
-import { resolveWorkflow } from '../../lib/workflows/resolve-workflow'
-import { runWorkflow } from '../../lib/workflows/run-workflow'
+import { WorkflowService } from '../../lib/workflows/workflow.service'
+import { ContextService } from '../../lib/config/context.service'
+import { GitRepository } from '../../adapters/git'
+import { WorkflowController } from '../../lib/workflows/workflow.controller'
+import { SysCallService } from '../../lib/sys-call.service'
+import { PromptController } from '../../lib/prompt.controller'
 
 export const runCommand = new Command()
     .createCommand('run')
     .description('Run predefined workflows, see Commands for avalable workflows')
     .action(() => {
         const configService = ConfigService.getInstance()
+        const workflowService = WorkflowService.init(
+            configService,
+            ContextService.init(GitRepository.getInstance()),
+        )
+        const workflowController = WorkflowController.init(
+            workflowService,
+            ContextService.getInstance(),
+            SysCallService.getInstance(),
+            PromptController.getInstance(),
+        )
 
         const subCommand = new Command('run')
         const workflows = configService.config.workflows || []
@@ -22,7 +36,7 @@ export const runCommand = new Command()
                 .option('-c, --confirm', 'Force confirmation dialog')
                 .option('-d, --dry', 'Dry run, list all steps without running them')
                 .action(async (opts: { yes?: boolean; confirm?: boolean; dry?: boolean }) => {
-                    const resolvedWorkflow = resolveWorkflow(workflow)
+                    const resolvedWorkflow = workflowService.resolveWorkflow(workflow)
 
                     if (opts.dry) {
                         Logger.log().log('Steps for ' + resolvedWorkflow.name)
@@ -32,7 +46,7 @@ export const runCommand = new Command()
                     }
 
                     Logger.log()
-                    await runWorkflow(resolvedWorkflow, opts)
+                    await workflowController.runResolvedWorkflow(resolvedWorkflow, opts)
                     Logger.log()
                 }),
         )

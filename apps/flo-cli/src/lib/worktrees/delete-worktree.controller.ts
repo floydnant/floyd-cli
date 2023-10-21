@@ -66,14 +66,16 @@ export class DeleteWorktreeController {
             return
         }
 
-        const selectedTrees = await this.gitController.selectMultipleWorktrees('Select worktrees to remove', {
-            filter: tree => !tree.isMainWorktree,
-        })
-        // @TODO: this will potentially log twice since the `selectMultipleWorktrees` call already logs a message
-        if (!selectedTrees?.length) {
+        const removeableWorktrees = worktrees.filter(tree => !tree.isMainWorktree)
+        if (!removeableWorktrees.length) {
             Logger.log('No worktrees to remove')
             return
         }
+
+        const selectedTrees = await this.gitController.selectMultipleWorktrees('Select worktrees to remove', {
+            worktrees: removeableWorktrees,
+        })
+        if (!selectedTrees?.length) return
 
         const { deleteBranch } =
             optsDelete ||

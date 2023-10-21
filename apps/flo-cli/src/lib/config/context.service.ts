@@ -4,11 +4,19 @@ import { Logger } from '../logger.service'
 import { globalPaths } from './config.vars'
 import { cacheable } from '../utils'
 
+export type CliContext = {
+    repoRoot: string
+    worktreeRoot: string
+    cwd: string
+    newWorktreeRoot: string
+    // localConfigRoot: string
+}
+
 export class ContextService {
     /** Do not use this constructor directly, use `.init()` instead */
     constructor(private gitRepo: GitRepository) {}
 
-    private getContext = cacheable(() => {
+    private getContext = cacheable((): CliContext & typeof globalPaths => {
         const currentWorktree = this.gitRepo.getCurrentWorktree()
         return {
             ...globalPaths,
@@ -22,6 +30,10 @@ export class ContextService {
     })
     get context() {
         return this.getContext()
+    }
+
+    updateContext(context: Partial<CliContext>) {
+        Object.assign(this.context, context)
     }
 
     interpolateContextVars(contents: string) {

@@ -3,8 +3,7 @@ import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
 import { ContextService } from '../config/context.service'
 import { GitController } from '../git.controller'
 import { OpenController } from '../open/open.controller'
-import { resolveWorkflow } from '../workflows/resolve-workflow'
-import { runWorkflow } from '../workflows/run-workflow'
+import { WorkflowController } from '../workflows/workflow.controller'
 import { WorktreeHook } from './worktree-config.schemas'
 import { WorktreeService } from './worktree.service'
 
@@ -16,12 +15,13 @@ export class OpenWorktreeController {
         private gitController: GitController,
         private contextService: ContextService,
         private openController: OpenController,
+        private workflowController: WorkflowController,
     ) {}
 
     // @TODO: @floydnant we should be able to checkout a new branch/PR from here with a --checkout <branchOrPrNumber> flag
     openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
         const worktrees = this.gitRepo.getWorktrees()
-        const workflow = this.worktreeService.getWorktreeHook(WorktreeHook.OnSwitch)
+        const workflow = this.worktreeService.getWorktreeHook(WorktreeHook.BeforeOpen)
         const openOpts = { reuseWindow: opts.reuseWindow }
 
         if (opts.branch) {
@@ -29,8 +29,7 @@ export class OpenWorktreeController {
             const folderPath = path.join(worktree.directory, opts.subDir || '')
 
             if (workflow) {
-                this.contextService.context.newWorktreeRoot = worktree.directory
-                await runWorkflow(resolveWorkflow(workflow))
+                await this.workflowController.runWorkflow(workflow, { newWorktreeRoot: worktree.directory })
             }
 
             this.openController.openFolder(folderPath, openOpts)
@@ -41,8 +40,7 @@ export class OpenWorktreeController {
         if (!worktree) return
 
         if (workflow) {
-            this.contextService.context.newWorktreeRoot = worktree.directory
-            await runWorkflow(resolveWorkflow(workflow))
+            await this.workflowController.runWorkflow(workflow, { newWorktreeRoot: worktree.directory })
         }
 
         const folderPath = path.join(worktree.directory, opts.subDir || '')

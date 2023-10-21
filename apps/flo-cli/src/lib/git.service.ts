@@ -7,6 +7,11 @@ export class GitService {
     /** Do not use this constructor directly, use `.init()` instead */
     constructor(private gitRepo: GitRepository) {}
 
+    createBranch(branch: string, message: string | false = `Creating branch ${branch.yellow}...`.dim) {
+        if (message !== false) Logger.log(message)
+        return this.gitRepo.createBranch(branch, null)
+    }
+
     private static instance: GitService
     static init(...args: ConstructorParameters<typeof GitService>) {
         if (this.instance) {

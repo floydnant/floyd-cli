@@ -1,30 +1,24 @@
-import path from 'path'
 import { GitRepository } from '../../adapters/git'
-import { ConfigService } from '../config/config.service'
-import { Logger } from '../logger.service'
+import { ProjectsService } from '../projects/projects.service'
 import { Workflow } from '../workflows/workflow.schemas'
+import { WorkflowService } from '../workflows/workflow.service'
 import { WorktreeHook } from './worktree-config.schemas'
 
 export class WorktreeService {
     /** Do not use this constructor directly, use `WorktreeService.init()` instead */
     constructor(
         private gitRepo: GitRepository,
-        private configService: ConfigService,
+        private projectsService: ProjectsService,
+        private workflowService: WorkflowService,
     ) {}
 
+    // @TODO: this might rather belong into the projects service
     getWorktreeHook(hookId: WorktreeHook): Workflow | undefined {
-        const config = this.configService.config
-        const repoRoot = this.gitRepo.getRepoRootDir()
-        if (!repoRoot) return
-
-        const projectId = path.basename(repoRoot)
-        const workflowId = config.projects?.[projectId]?.worktreeHooks?.[hookId]
+        const currentProjectConfig = this.projectsService.getProject().config
+        const workflowId = currentProjectConfig?.worktreeHooks?.[hookId]
         if (!workflowId) return
 
-        const workflow = config.workflows?.find(flow => flow.workflowId == workflowId)
-        if (workflow) return workflow
-
-        Logger.getInstance().warn(`Could not find a workflow with ID ${workflowId}`)
+        return this.workflowService.getWorkflow(workflowId)
     }
 
     private static instance: WorktreeService

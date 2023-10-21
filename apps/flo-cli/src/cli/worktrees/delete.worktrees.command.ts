@@ -5,6 +5,9 @@ import { GitController } from '../../lib/git.controller'
 import { SysCallService } from '../../lib/sys-call.service'
 import { DeleteWorktreeController } from '../../lib/worktrees/delete-worktree.controller'
 import { WorktreeService } from '../../lib/worktrees/worktree.service'
+import { ProjectsService } from '../../lib/projects/projects.service'
+import { WorkflowService } from '../../lib/workflows/workflow.service'
+import { ContextService } from '../../lib/config/context.service'
 
 export const deleteWorktreeCommand = new Command()
     .createCommand('delete')
@@ -21,8 +24,11 @@ export const deleteWorktreeCommand = new Command()
         ) => {
             const gitRepo = GitRepository.getInstance()
             const configService = ConfigService.getInstance()
+            const projectsService = ProjectsService.init(gitRepo, configService)
+            const contextService = ContextService.getInstance()
+            const workflowService = WorkflowService.init(configService, contextService)
             const controller = DeleteWorktreeController.init(
-                WorktreeService.init(gitRepo, configService),
+                WorktreeService.init(gitRepo, projectsService, workflowService),
                 gitRepo,
                 GitController.getInstance(),
                 SysCallService.getInstance(),

@@ -3,6 +3,9 @@ import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
 import { ListWorktreeController } from '../../lib/worktrees/list-worktree.controller'
 import { WorktreeService } from '../../lib/worktrees/worktree.service'
+import { ProjectsService } from '../../lib/projects/projects.service'
+import { WorkflowService } from '../../lib/workflows/workflow.service'
+import { ContextService } from '../../lib/config/context.service'
 
 export const listWorktreesCommand = new Command()
     .createCommand('list')
@@ -12,7 +15,13 @@ export const listWorktreesCommand = new Command()
     .action((opts: { logs?: boolean | string }) => {
         const gitRepo = GitRepository.getInstance()
         const configService = ConfigService.getInstance()
-        const controller = ListWorktreeController.init(WorktreeService.init(gitRepo, configService), gitRepo)
+        const projectsService = ProjectsService.init(gitRepo, configService)
+        const contextService = ContextService.getInstance()
+        const workflowService = WorkflowService.init(configService, contextService)
+        const controller = ListWorktreeController.init(
+            WorktreeService.init(gitRepo, projectsService, workflowService),
+            gitRepo,
+        )
 
         return controller.listWorktrees(opts)
     })

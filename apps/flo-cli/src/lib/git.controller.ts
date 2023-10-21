@@ -71,23 +71,24 @@ export class GitController {
         return { branch: newBranch, isNew: true }
     }
 
-    private getWorktreeChoices(filter?: (worktree: Worktree) => boolean) {
-        return this.gitRepo
-            .getWorktrees()
-            .filter(filter ? filter : () => true)
-            .map(worktree => {
-                const isDirty = !!this.gitRepo.getGitStatus(worktree.directory)
-                return {
-                    title: getWorktreeDisplayStr(worktree, isDirty),
-                    value: worktree,
-                }
-            })
+    private getWorktreeChoices(worktrees?: Worktree[]) {
+        worktrees ??= this.gitRepo.getWorktrees()
+
+        return worktrees.map(worktree => {
+            const isDirty = !!this.gitRepo.getGitStatus(worktree.directory)
+            return {
+                title: getWorktreeDisplayStr(worktree, isDirty),
+                value: worktree,
+            }
+        })
     }
     async selectWorktree(
         message: string,
-        options?: { filter: (worktree: Worktree) => boolean },
+        options?: {
+            worktrees?: Worktree[]
+        },
     ): Promise<Worktree | null> {
-        const choices = this.getWorktreeChoices(options?.filter)
+        const choices = this.getWorktreeChoices(options?.worktrees)
         if (!choices.length) return null
 
         const selectedWorktree = await this.promptController.select({
@@ -103,9 +104,11 @@ export class GitController {
     }
     async selectMultipleWorktrees(
         message: string,
-        options?: { filter: (worktree: Worktree) => boolean },
+        options?: {
+            worktrees?: Worktree[]
+        },
     ): Promise<Worktree[] | null> {
-        const choices = this.getWorktreeChoices(options?.filter)
+        const choices = this.getWorktreeChoices(options?.worktrees)
         if (!choices.length) return null
 
         const selectedWorktrees = await this.promptController.selectMultiple({

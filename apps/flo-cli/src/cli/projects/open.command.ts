@@ -16,8 +16,8 @@ export const openCommand = new Command()
     // .argument('[project-or-alias]', 'The projectId or alias')
     .action(async ({ reuseWindow }: { reuseWindow: boolean }) => {
         const gitRepo = GitRepository.getInstance()
-        const projectsService = new ProjectsService(gitRepo)
         const configService = ConfigService.getInstance()
+        const projectsService = ProjectsService.init(gitRepo, configService)
         const gitController = GitController.getInstance()
         // @TODO: this should be configurable
         const openController = OpenController.getInstance()
@@ -38,7 +38,9 @@ export const openCommand = new Command()
             return
         }
 
-        const selectedWorktree = await gitController.selectWorktree('Select a worktree to open')
+        const selectedWorktree = await gitController.selectWorktree('Select a worktree to open', {
+            worktrees: selectedProject.worktrees,
+        })
         if (!selectedWorktree) return
 
         openController.openFolder(selectedWorktree.directory, { reuseWindow })

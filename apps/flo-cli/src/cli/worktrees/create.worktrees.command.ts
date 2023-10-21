@@ -7,6 +7,11 @@ import { OpenController } from '../../lib/open/open.controller'
 import { CreateWorktreeController } from '../../lib/worktrees/create-worktree.controller'
 import { WorktreeService } from '../../lib/worktrees/worktree.service'
 import { GitController } from '../../lib/git.controller'
+import { ProjectsService } from '../../lib/projects/projects.service'
+import { WorkflowService } from '../../lib/workflows/workflow.service'
+import { PromptController } from '../../lib/prompt.controller'
+import { SysCallService } from '../../lib/sys-call.service'
+import { WorkflowController } from '../../lib/workflows/workflow.controller'
 
 export const createWorktreeCommand = new Command()
     .createCommand('create')
@@ -43,12 +48,22 @@ export const createWorktreeCommand = new Command()
             },
         ) => {
             const gitRepo = GitRepository.getInstance()
+            const configService = ConfigService.getInstance()
+            const projectsService = ProjectsService.init(gitRepo, configService)
+            const contextService = ContextService.getInstance()
+            const workflowService = WorkflowService.init(configService, contextService)
             const controller = CreateWorktreeController.init(
-                WorktreeService.init(gitRepo, ConfigService.getInstance()),
+                WorktreeService.init(gitRepo, projectsService, workflowService),
                 gitRepo,
                 GitController.getInstance(),
                 ContextService.getInstance(),
                 OpenController.getInstance(),
+                WorkflowController.init(
+                    WorkflowService.getInstance(),
+                    ContextService.getInstance(),
+                    SysCallService.getInstance(),
+                    PromptController.getInstance(),
+                ),
             )
             controller.createWorktree({ branch, ...opts })
         },

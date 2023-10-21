@@ -1,5 +1,6 @@
 import 'colors'
 import path from 'path'
+import os from 'os'
 
 export const isSubDir = (dir: string, parentDir: string) => {
     const relative = path.relative(parentDir, dir)
@@ -20,7 +21,14 @@ export const getPaddedStr = (str: string, fillString = '-') => {
     return str + ' ' + fillString.repeat(length).dim
 }
 
-export const getRelativePathOf = (pathString: string) => path.relative(process.cwd(), pathString) || './'
+export const getRelativePathOf = (pathString: string, from?: string) => {
+    const cwd = process.cwd()
+    const homedir = os.homedir()
+    const isRelativeToHomeDir = from == homedir && cwd != homedir
+    const relativePath = path.relative(from || cwd, pathString)
+
+    return (isRelativeToHomeDir ? '~/' : '') + relativePath || './'
+}
 
 export const getFlags = (...argsArr: Record<string, string | number | boolean | undefined | null>[]) => {
     const merged = argsArr.map(args => {
@@ -69,5 +77,3 @@ export const cacheable = <TArgs extends unknown[], TReturn>(callback: (...args: 
 
     return Object.assign(memoizedCallback, { resetCache })
 }
-
-export const isNumber = (value: string) => !isNaN(parseInt(value))

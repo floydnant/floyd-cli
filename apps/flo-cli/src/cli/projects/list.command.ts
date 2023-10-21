@@ -10,7 +10,7 @@ export const listCommand = new Command()
     .description('List projects')
     .action(() => {
         const gitRepo = GitRepository.getInstance()
-        const projectsService = ProjectsService.init(gitRepo)
+        const projectsService = ProjectsService.init(gitRepo, ConfigService.getInstance())
         const configService = ConfigService.getInstance()
 
         const projectMap = configService.config.projects

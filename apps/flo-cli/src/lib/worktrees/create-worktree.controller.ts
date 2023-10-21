@@ -6,12 +6,10 @@ import { ContextService } from '../config/context.service'
 import { GitController } from '../git.controller'
 import { Logger } from '../logger.service'
 import { OpenController } from '../open/open.controller'
-import { resolveWorkflow } from '../workflows/resolve-workflow'
-import { runWorkflow } from '../workflows/run-workflow'
+import { WorkflowController } from '../workflows/workflow.controller'
 import { selectPullRequest } from './select-pull-request'
 import { setupWorktree } from './setup-worktree'
 import { WorktreeHook } from './worktree-config.schemas'
-import { getWorktreeHook } from './worktree-hooks'
 import { WorktreeService } from './worktree.service'
 
 export class CreateWorktreeController {
@@ -22,6 +20,7 @@ export class CreateWorktreeController {
         private gitController: GitController,
         private contextService: ContextService,
         private openController: OpenController,
+        private workflowController: WorkflowController,
     ) {}
 
     createWorktree = async (opts: {
@@ -87,6 +86,7 @@ export class CreateWorktreeController {
 
         // const upstream = !useRemoteBranches ? '' : (opts.remote || getRemoteOf(branch) || 'origin') + ' ' + branch
 
+        // @TODO: this doesn't work, refactor this to the new approach
         if (useRemoteBranches) this.gitRepo.gitFetch()
         // create branch if it doesn't exist yet
         else if (!this.gitRepo.getBranches().includes(branch)) {
@@ -102,10 +102,21 @@ export class CreateWorktreeController {
         })
 
         if (!opts.skipHooks) {
-            Logger.log(`Running workflow hooks for ${WorktreeHook.OnCreate.cyan}...`)
-            const workflow = getWorktreeHook(WorktreeHook.OnCreate)
-            this.contextService.context.newWorktreeRoot = worktree.directory
-            if (workflow) await runWorkflow(resolveWorkflow(workflow))
+            const workflowOnCreate = this.worktreeService.getWorktreeHook(WorktreeHook.OnCreate)
+            if (workflowOnCreate) {
+                Logger.log(`Running workflow hook ${WorktreeHook.OnCreate.cyan}...`)
+                await this.workflowController.runWorkflow(workflowOnCreate, {
+                    newWorktreeRoot: worktree.directory,
+                })
+            }
+
+            const workflowBeforeOpen = this.worktreeService.getWorktreeHook(WorktreeHook.BeforeOpen)
+            if (workflowBeforeOpen) {
+                Logger.log(`Running workflow hook ${WorktreeHook.BeforeOpen.cyan}...`)
+                await this.workflowController.runWorkflow(workflowBeforeOpen, {
+                    newWorktreeRoot: worktree.directory,
+                })
+            }
         }
 
         Logger.log()

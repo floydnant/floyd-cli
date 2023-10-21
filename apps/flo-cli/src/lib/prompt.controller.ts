@@ -37,7 +37,7 @@ export class PromptController {
 
     async select<T>(options: {
         message: string
-        choices: (Choice<T> | false | undefined | null)[]
+        choices: readonly (Choice<T> | false | undefined | null)[]
     }): Promise<T | null> {
         const { selected }: { selected?: T } = await prompts({
             type: 'select',
