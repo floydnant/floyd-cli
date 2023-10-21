@@ -25,6 +25,7 @@ export const getWorktreeDisplayStr = (tree: Worktree, isDirty?: boolean) => {
     return `${checkedOut} ${info ? `(${info}) ` : ''}${tree.directory.dim}`
 }
 
+/** Returns a folder name with incremented index (starting at 1) */
 export const getNextWorktreeName = (worktrees: Worktree[]) => {
     const worktreesIndicies = worktrees
         .map(worktree => /worktree-\d+/.exec(worktree.directory)?.[0]?.match(/\d+/)?.[0])

@@ -145,6 +145,10 @@ export class GitRepository {
             .map(fixBranchName)
     })
 
+    listRemoteHeads = cacheable((remote?: string) => {
+        return this.sysCallService.execPipe(`git ls-remote --heads ${remote || ''}`)
+    })
+
     getCurrentBranch = cacheable((workingDir?: string) => {
         return this.sysCallService.execPipe('git branch --show-current', { cwd: workingDir })
     })
