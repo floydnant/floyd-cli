@@ -18,7 +18,7 @@ export class SysCallService {
                 ...(Object.keys(restOptions).length > 0 ? ['with options:', restOptions] : []),
             ]
         })
-        return execSync(command, options)?.toString()
+        return execSync(command, options)
     }
 
     /**
@@ -30,9 +30,13 @@ export class SysCallService {
 
     /**
      * `execSync` from `child_process` with piped stdio and debug logging
+     *
+     * The output is trimmed and returned as a string
      */
     execPipe(command: string, options: ExecSyncOptions = {}) {
         return this.exec(command, { ...options, stdio: 'pipe' })
+            ?.toString()
+            .trim()
     }
 
     /**

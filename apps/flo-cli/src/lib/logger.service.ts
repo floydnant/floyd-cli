@@ -1,13 +1,5 @@
 import { DEFAULT_LOG_LEVEL } from './config/config.vars'
-
-export enum LogLevel {
-    QUIET = 'quiet',
-    ERROR = 'error',
-    WARN = 'warn',
-    LOG = 'log',
-    VERBOSE = 'verbose',
-    DEBUG = 'debug',
-}
+import { LogLevel } from './logger.types'
 
 export class Logger {
     private static logLevel = DEFAULT_LOG_LEVEL

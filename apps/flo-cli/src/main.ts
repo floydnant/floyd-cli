@@ -10,7 +10,7 @@ import { timeCommand } from './cli/time-tracking'
 import { runCommand } from './cli/workflows'
 import { worktreesCommand } from './cli/worktrees'
 import { ConfigService } from './lib/config/config.service'
-import { LogLevel, Logger } from './lib/logger.service'
+import { Logger } from './lib/logger.service'
 import { projectsCommand } from './cli/projects'
 import { SysCallService } from './lib/sys-call.service'
 import { GitRepository } from './adapters/git'
@@ -20,6 +20,7 @@ import { OpenController } from './lib/open/open.controller'
 import { GitController } from './lib/git.controller'
 import { GitService } from './lib/git.service'
 import { PromptController } from './lib/prompt.controller'
+import { LogLevel } from './lib/logger.types'
 
 const cli = new Command()
 

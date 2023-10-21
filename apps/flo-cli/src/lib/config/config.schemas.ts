@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { LogLevel } from '../logger.service'
 import { workflowSchema } from '../workflows/workflow.schemas'
 import { worktreeConfigSchema } from '../worktrees/worktree-config.schemas'
 import { DEFAULT_LOG_LEVEL } from './config.vars'
 import { validateWorkflows } from '../workflows/validate-workflows'
+import { LogLevel } from '../logger.types'
 
 export type ProjectConfig = z.infer<typeof projectConfigSchema>
 export const projectConfigSchema = z.object({ root: z.string() }).merge(worktreeConfigSchema)

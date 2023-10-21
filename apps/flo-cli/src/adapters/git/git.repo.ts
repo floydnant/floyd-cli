@@ -5,6 +5,7 @@ import { Logger } from '../../lib/logger.service'
 import { cacheable, isSubDir } from '../../lib/utils'
 import { z } from 'zod'
 import { SysCallService } from '../../lib/sys-call.service'
+import { transformGitErrors } from './git.errors'
 
 // Git Worktree List Output Format
 //
@@ -68,52 +69,72 @@ export class GitRepository {
     /** Do not use this constructor directly, use `.init()` instead */
     constructor(private sysCallService: SysCallService) {}
 
-    getWorktrees = cacheable(
-        handleGitErrors({ fallbackValue: [] as Worktree[] }, (options?: { cwd?: string }): Worktree[] => {
-            const output = this.sysCallService
-                .exec('git worktree list --porcelain', { cwd: options?.cwd, stdio: 'pipe' })
-                .trim()
-            const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
-            const repoRootDir = this.getRepoRootDir(options?.cwd)
-            const cwd = process.cwd()
+    getWorktrees = cacheable((options?: { cwd?: string }): Worktree[] => {
+        return transformGitErrors(
+            () => {
+                const output = this.sysCallService.execPipe('git worktree list --porcelain', {
+                    cwd: options?.cwd,
+                    stdio: 'pipe',
+                })
+                const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
+                const repoRootDir = this.getRepoRootDir(options?.cwd)
+                const cwd = process.cwd()
 
-            const worktrees = worktreeTextBlocks.map(block => {
-                const directory = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '')
-                const branch = block.match(/^branch .+/m)?.[0].replace('branch ', '')
-                const isBare = /^bare/m.test(block)
+                const worktrees = worktreeTextBlocks.map<Worktree>(block => {
+                    const directory = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '')
+                    const branch = block.match(/^branch .+/m)?.[0].replace('branch ', '')
+                    const isBare = /^bare/m.test(block)
 
-                const head = block.match(/^HEAD .+/m)?.[0].replace('HEAD ', '')
-                const isDetached = /^detached/m.test(block)
+                    const head = block.match(/^HEAD .+/m)?.[0].replace('HEAD ', '')
+                    const isDetached = /^detached/m.test(block)
 
-                const isLocked = /^locked/m.test(block)
-                const lockReason = block.match(/^locked .+/m)?.[0].replace('locked ', '')
+                    const isLocked = /^locked/m.test(block)
+                    const lockReason = block.match(/^locked .+/m)?.[0].replace('locked ', '')
 
-                const isPrunable = /^prunable/m.test(block)
-                const prunableReason = block.match(/^prunable .+/m)?.[0].replace('locked ', '')
+                    const isPrunable = /^prunable/m.test(block)
+                    const prunableReason = block.match(/^prunable .+/m)?.[0].replace('locked ', '')
 
-                // this should never happen, because a worktree always has a directory
-                if (!directory) {
-                    Logger.error(`Couldn't match a directory in:\n${block}`.red)
-                    process.exit(1)
-                }
-                return {
-                    directory,
-                    branch: branch && fixBranchName(branch),
-                    head,
-                    isBare,
-                    isLocked,
-                    lockReason,
-                    isDetached,
-                    isPrunable,
-                    prunableReason,
-                    isMainWorktree: repoRootDir == directory,
-                    isCurrent: cwd == directory || isSubDir(cwd, directory),
-                } satisfies Worktree
-            })
+                    // this should never happen, because a worktree always has a directory
+                    if (!directory) {
+                        Logger.error(`Couldn't match a directory in:\n${block}`.red)
+                        process.exit(1)
+                    }
+                    return {
+                        directory,
+                        branch: branch && fixBranchName(branch),
+                        head,
+                        isBare,
+                        isLocked,
+                        lockReason,
+                        isDetached,
+                        isPrunable,
+                        prunableReason,
+                        isMainWorktree: repoRootDir == directory,
+                        isCurrent: cwd == directory || isSubDir(cwd, directory),
+                    } satisfies Worktree
+                })
 
-            return worktrees
-        }),
-    )
+                return worktrees
+            },
+            { fallbackValue: [] as Worktree[] },
+        )
+    })
+
+    /** Adds a worktree with an existing branch */
+    addWorktree(directory: string, branch: string): Worktree {
+        transformGitErrors(() => {
+            const output = this.sysCallService.execPipe(`git worktree add ${directory} --checkout ${branch}`)
+            // @TODO: this might need to be moved to the service or removed entirely
+            Logger.verbose(output)
+        })
+
+        return {
+            branch,
+            directory,
+            isMainWorktree: false,
+            isCurrent: false,
+        }
+    }
 
     getBranches = cacheable((remote?: boolean) => {
         return this.sysCallService
@@ -125,7 +146,7 @@ export class GitRepository {
     })
 
     getCurrentBranch = cacheable((workingDir?: string) => {
-        return this.sysCallService.exec('git branch --show-current', { cwd: workingDir }).trim()
+        return this.sysCallService.execPipe('git branch --show-current', { cwd: workingDir })
     })
 
     getCurrentWorktree() {
@@ -134,7 +155,7 @@ export class GitRepository {
 
     getRepoRootDir = cacheable(
         handleGitErrors({ fallbackValue: null }, (cwd: string = process.cwd()) => {
-            const gitDir = this.sysCallService.exec('git rev-parse --git-dir', { cwd, stdio: 'pipe' }).trim()
+            const gitDir = this.sysCallService.execPipe('git rev-parse --git-dir', { cwd, stdio: 'pipe' })
             const isAbsolute = path.isAbsolute(gitDir)
             const joined = path.join(cwd, gitDir)
             const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
@@ -144,7 +165,7 @@ export class GitRepository {
     )
 
     getGitStatus = cacheable((directory?: string) => {
-        return this.sysCallService.exec('git status --short', { cwd: directory }).trim()
+        return this.sysCallService.execPipe('git status --short', { cwd: directory })
     })
 
     getCommitLogs = cacheable((dir?: string, limit?: number) => {
@@ -154,7 +175,7 @@ export class GitRepository {
 
     getRemoteOf(branch: string) {
         try {
-            return this.sysCallService.exec(`git config --get branch.${branch}.remote`).trim() || null
+            return this.sysCallService.execPipe(`git config --get branch.${branch}.remote`) || null
         } catch {
             return null
         }
@@ -164,7 +185,7 @@ export class GitRepository {
     /** `git branch <branchName>` */
     createBranch(branchName: string, message: string | null = `Creating branch ${branchName.green}...`.dim) {
         if (message !== null) Logger.getInstance().log(message)
-        this.sysCallService.execInherit(`git branch ${branchName}`)
+        return this.sysCallService.execInherit(`git branch ${branchName}`)
     }
 
     // @TODO: remove logging
@@ -176,7 +197,7 @@ export class GitRepository {
 
     // @TODO: remove logging
     gitFetch(upstream?: string) {
-        Logger.verbose(`Fetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
+        Logger.log(`Fetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
         this.sysCallService.execInherit(`git fetch ${upstream || ''}`)
     }
 
