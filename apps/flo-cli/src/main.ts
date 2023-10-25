@@ -15,6 +15,7 @@ import { projectsCommand } from './cli/projects'
 import { SysCallService } from './lib/sys-call.service'
 import { GitRepository } from './adapters/git'
 import { ContextService } from './lib/config/context.service'
+import { gracefullyHandle } from './lib/errors.utils'
 import { OpenService } from './lib/open/open.service'
 import { OpenController } from './lib/open/open.controller'
 import { GitController } from './lib/git.controller'
@@ -50,4 +51,4 @@ cli.hook('preAction', thisCommand => {
     Logger.debug('Debug logging enabled')
 })
 
-cli.parse(process.argv)
+gracefullyHandle(() => cli.parseAsync(process.argv))

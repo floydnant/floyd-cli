@@ -1,23 +1,21 @@
 import { Command } from 'commander'
 import { ConfigService } from '../../lib/config/config.service'
-import { Logger } from '../../lib/logger.service'
-import { printStepsOf } from '../../lib/workflows/print-workflow'
-import { WorkflowService } from '../../lib/workflows/workflow.service'
 import { ContextService } from '../../lib/config/context.service'
-import { GitRepository } from '../../adapters/git'
-import { WorkflowController } from '../../lib/workflows/workflow.controller'
-import { SysCallService } from '../../lib/sys-call.service'
+import { Logger } from '../../lib/logger.service'
 import { PromptController } from '../../lib/prompt.controller'
+import { SysCallService } from '../../lib/sys-call.service'
+import { printStepsOf } from '../../lib/workflows/print-workflow'
+import { WorkflowController } from '../../lib/workflows/workflow.controller'
+import { WorkflowService } from '../../lib/workflows/workflow.service'
 
 export const runCommand = new Command()
     .createCommand('run')
-    .description('Run predefined workflows, see Commands for avalable workflows')
-    .action(() => {
+    .description('Run predefined workflows, see subcommands for avalable workflows')
+    .allowUnknownOption(true) // pass through options to shadow command
+    .helpOption(false) // disable help so that we always delegate to the shadow command which in turn handles help
+    .action(async () => {
         const configService = ConfigService.getInstance()
-        const workflowService = WorkflowService.init(
-            configService,
-            ContextService.init(GitRepository.getInstance()),
-        )
+        const workflowService = WorkflowService.init(configService, ContextService.getInstance())
         const workflowController = WorkflowController.init(
             workflowService,
             ContextService.getInstance(),
@@ -25,10 +23,12 @@ export const runCommand = new Command()
             PromptController.getInstance(),
         )
 
-        const subCommand = new Command('run')
+        const shadowCommand = new Command('run').description(
+            'Run predefined workflows, see Commands for avalable workflows',
+        )
         const workflows = configService.config.workflows || []
         workflows.forEach(workflow =>
-            subCommand
+            shadowCommand
                 .command(workflow.workflowId)
                 .aliases(workflow.aliases || [])
                 .description([workflow.name, workflow.description].filter(Boolean).join(' - '))
@@ -52,5 +52,5 @@ export const runCommand = new Command()
         )
 
         const arg = process.argv.filter(arg => arg !== 'run' && arg !== '--debug')
-        subCommand.parse(arg)
+        await shadowCommand.parseAsync(arg)
     })

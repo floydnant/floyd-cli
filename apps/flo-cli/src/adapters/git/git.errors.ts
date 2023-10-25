@@ -1,11 +1,6 @@
 import { CustomExceptionConstructor, Exception, matchError } from '../../lib/errors.utils'
 import { Logger } from '../../lib/logger.service'
 
-// $ git checkout non-existent
-// error: pathspec 'non-existent' did not match any file(s) known to git
-// $ git worktree add <path> --checkout non-existent
-// fatal: invalid reference: non-existent
-
 export enum GitExceptionCode {
     /**
      * This happens when trying to create a worktree with a branch that doesn't exist
@@ -116,13 +111,16 @@ export class NotAGitRepositoryException extends Exception {
 
     static fromError(error: unknown): NotAGitRepositoryException | null {
         const match = matchError(error, this.regex)
-        if (match.isMatch) return new NotAGitRepositoryException(match.originalMessage)
+        if (match.isMatch) return new NotAGitRepositoryException()
 
         return null
     }
 
-    constructor(originalMessage: string) {
-        super(originalMessage, 'Not inside a git repository')
+    constructor() {
+        super(
+            'fatal: not a git repository (or any of the parent directories): .git',
+            'Not in a git repository',
+        )
     }
 }
 
@@ -138,6 +136,8 @@ export type GitException = InstanceType<GitExceptionConstructor>
 
 export const matchGitError = (error: unknown): GitException | null => {
     for (const constructor of gitExceptions) {
+        if (error instanceof constructor) return error
+
         const exception = constructor.fromError(error)
 
         if (exception) {
