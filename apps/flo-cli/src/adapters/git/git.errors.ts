@@ -37,6 +37,16 @@ export enum GitExceptionCode {
      * ```
      */
     NOT_A_GIT_REPOSITORY = 'fatal: not a git repository (or any of the parent directories): .git',
+
+    /**
+     * ```sh
+     * git branch '???'
+     * ```
+     * ```txt
+     * fatal: '???' is not a valid branch name
+     * ```
+     */
+    NOT_A_VALID_BRANCH_NAME = "fatal: '???' is not a valid branch name",
 }
 
 /**
@@ -121,6 +131,32 @@ export class NotAGitRepositoryException extends Exception {
             'fatal: not a git repository (or any of the parent directories): .git',
             'Not in a git repository',
         )
+    }
+}
+
+/**
+ * ```sh
+ * git branch '???'
+ * ```
+ * ```txt
+ * fatal: '???' is not a valid branch name
+ * ```
+ */
+export class NotAValidBranchNameException extends Exception {
+    static regex = /fatal: '(?<branch>.+)' is not a valid branch name/
+    class = NotAValidBranchNameException
+    code = GitExceptionCode.NOT_A_VALID_BRANCH_NAME
+
+    static fromError(error: unknown): NotAValidBranchNameException | null {
+        const match = matchError(error, this.regex)
+        if (match.isMatch)
+            return new NotAValidBranchNameException(match.originalMessage, match.groups['branch'])
+
+        return null
+    }
+
+    constructor(originalMessage: string, branch = '???') {
+        super(originalMessage, `'${branch.yellow}' is not a valid branch name`)
     }
 }
 
