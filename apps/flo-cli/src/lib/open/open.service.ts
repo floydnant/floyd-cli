@@ -1,11 +1,8 @@
+import { ConfigService } from '../config/config.service'
 import { SysCallService } from '../sys-call.service'
-import { OpenDefaultService } from './open-default.service'
-import { OpenItermService } from './open-iterm.service'
-import { OpenNanoService } from './open-nano.service'
-import { OpenNeovimService } from './open-nvim.service'
-import { OpenVimService } from './open-vim.service'
+import { createCustomOpenPort } from './custom-open.service'
 import { OpenVscodeService } from './open-vscode.service'
-import { OpenPort, OpenServiceConstructor } from './open.types'
+import { OpenPort, OpenServiceConstructor, OpenType } from './open.types'
 
 // @TODO: this needs to get its own file
 export interface InstalledCommandPort {
@@ -13,22 +10,29 @@ export interface InstalledCommandPort {
     assertInstalled(): void
 }
 
-const openPorts: OpenServiceConstructor[] = [
-    OpenVscodeService,
-    OpenNeovimService,
-    OpenVimService,
-    OpenNanoService,
-    OpenItermService,
-    OpenDefaultService,
-]
+const OpenDefaultService = createCustomOpenPort({
+    name: 'default app',
+    command: 'open {{ directory }}',
+    supportedTypes: [OpenType.Url, OpenType.File, OpenType.Folder],
+})
 
 export class OpenService {
     /** Do not use this constructor directly, use `.init()` instead */
-    constructor(private sysCallService: SysCallService) {}
+    constructor(
+        private sysCallService: SysCallService,
+        private configService: ConfigService,
+    ) {
+        this.openPorts = [
+            OpenVscodeService,
+            ...(this.configService.config.openIn?.apps || []).map(createCustomOpenPort),
+            OpenDefaultService,
+        ]
+    }
+    private openPorts: OpenServiceConstructor[]
 
     useAllInstalled(predicate: (openPort: OpenPort) => boolean = () => true) {
-        const installedOpenTypes = openPorts
-            .map(OpenPort => new OpenPort(this.sysCallService))
+        const installedOpenTypes = this.openPorts
+            .map(OpenPort => new OpenPort(this.sysCallService, this.configService))
             .filter(openPort => predicate(openPort) && openPort.isInstalled())
 
         if (installedOpenTypes.length === 0)

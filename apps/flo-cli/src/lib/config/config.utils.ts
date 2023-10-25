@@ -70,9 +70,7 @@ export const readOrInitConfig = () => {
     }
 }
 
+// @TODO: this should be in the config service
 export const editConfig = () => {
-    Logger.getInstance().verbose('Opening config file '.dim, globalPaths.configFile.yellow)
-
-    // @TODO: this should be in the config service
-    OpenController.getInstance().openFile(globalPaths.configFile)
+    OpenController.getInstance().openFile(globalPaths.configFile, { subject: 'config file' })
 }

@@ -4,6 +4,8 @@ import { worktreeConfigSchema } from '../worktrees/worktree-config.schemas'
 import { DEFAULT_LOG_LEVEL } from './config.vars'
 import { validateWorkflows } from '../workflows/validate-workflows'
 import { LogLevel } from '../logger.types'
+import { customOpenPortConfigSchema } from '../open/custom-open.schema'
+import { OpenType } from '../open/open.types'
 
 export type ProjectConfig = z.infer<typeof projectConfigSchema>
 export const projectConfigSchema = z.object({ root: z.string() }).merge(worktreeConfigSchema)
@@ -16,6 +18,12 @@ export const baseConfigSchema = z.object({
         .array()
         .optional()
         .refine(validateWorkflows, { message: 'Invalid workflow definition, see above.' }),
+    openIn: z
+        .object({
+            defaults: z.record(z.nativeEnum(OpenType), z.string()).optional(),
+            apps: customOpenPortConfigSchema.array().optional(),
+        })
+        .optional(),
 })
 
 export type LocalConfig = z.infer<typeof localConfigSchema>

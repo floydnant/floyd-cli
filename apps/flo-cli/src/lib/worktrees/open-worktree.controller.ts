@@ -6,6 +6,7 @@ import { OpenController } from '../open/open.controller'
 import { WorkflowController } from '../workflows/workflow.controller'
 import { WorktreeHook } from './worktree-config.schemas'
 import { WorktreeService } from './worktree.service'
+import { AppOptionArg, ReuseWindowOptionArg } from '../../cli/shared.options'
 
 export class OpenWorktreeController {
     /** Do not use this constructor directly, use `.init()` instead */
@@ -19,10 +20,12 @@ export class OpenWorktreeController {
     ) {}
 
     // @TODO: @floydnant we should be able to checkout a new branch/PR from here with a --checkout <branchOrPrNumber> flag
-    openWorktree = async (opts: { branch: string | undefined; reuseWindow?: boolean; subDir?: string }) => {
+    openWorktree = async (
+        opts: { branch: string | undefined; subDir?: string } & ReuseWindowOptionArg & AppOptionArg,
+    ) => {
         const worktrees = this.gitRepo.getWorktrees()
         const workflow = this.worktreeService.getWorktreeHook(WorktreeHook.BeforeOpen)
-        const openOpts = { reuseWindow: opts.reuseWindow }
+        const openOpts = { reuseWindow: opts.reuseWindow, app: opts.app }
 
         if (opts.branch) {
             const worktree = getWorktreeFromBranch(opts.branch, worktrees)

@@ -1,4 +1,4 @@
-import { Command } from 'commander'
+import { createCommand } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
 import { GitController } from '../../lib/git.controller'
@@ -6,20 +6,20 @@ import { Logger } from '../../lib/logger.service'
 import { OpenController } from '../../lib/open/open.controller'
 import { selectProject } from '../../lib/projects/project.utils'
 import { ProjectsService } from '../../lib/projects/projects.service'
+import { AppOptionArg, ReuseWindowOptionArg, appOption, reuseWindowOption } from '../shared.options'
 
-export const openCommand = new Command()
-    .createCommand('open')
+export const openCommand = createCommand('open')
     .description('Open project')
     .alias('o')
-    .option('-r, --reuse-window', 'Reuse existing window (if supported by app)', false)
+    .addOption(appOption)
+    .addOption(reuseWindowOption)
     // @TODO:
     // .argument('[project-or-alias]', 'The projectId or alias')
-    .action(async ({ reuseWindow }: { reuseWindow: boolean }) => {
+    .action(async (options: ReuseWindowOptionArg & AppOptionArg) => {
         const gitRepo = GitRepository.getInstance()
         const configService = ConfigService.getInstance()
         const projectsService = ProjectsService.init(gitRepo, configService)
         const gitController = GitController.getInstance()
-        // @TODO: this should be configurable
         const openController = OpenController.getInstance()
 
         const projectMap = configService.config.projects
@@ -34,7 +34,7 @@ export const openCommand = new Command()
         if (!selectedProject) return
 
         if (selectedProject.worktrees.length == 1) {
-            openController.openFolder(selectedProject.projectConfig.root, { reuseWindow })
+            openController.openFolder(selectedProject.projectConfig.root, options)
             return
         }
 
@@ -43,5 +43,5 @@ export const openCommand = new Command()
         })
         if (!selectedWorktree) return
 
-        openController.openFolder(selectedWorktree.directory, { reuseWindow })
+        openController.openFolder(selectedWorktree.directory, options)
     })

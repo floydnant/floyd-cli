@@ -11,6 +11,7 @@ import { WorkflowService } from '../../lib/workflows/workflow.service'
 import { WorkflowController } from '../../lib/workflows/workflow.controller'
 import { SysCallService } from '../../lib/sys-call.service'
 import { PromptController } from '../../lib/prompt.controller'
+import { AppOptionArg, ReuseWindowOptionArg, appOption, reuseWindowOption } from '../shared.options'
 
 export const switchCommand = new Command()
     .createCommand('switch')
@@ -49,8 +50,9 @@ export const openCommand = new Command()
     .description('Open a worktree')
     .argument('[branch]', 'the branch to switch the worktree to')
     .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo')
-    .option('-r, --reuse-window', 'Reuse existing window (if supported by app)', false)
-    .action((branch, options: { subDir?: string; reuseWindow: boolean }) => {
+    .addOption(appOption)
+    .addOption(reuseWindowOption)
+    .action((branch, options: { subDir?: string } & ReuseWindowOptionArg & AppOptionArg) => {
         const gitRepo = GitRepository.getInstance()
         const configService = ConfigService.getInstance()
         const contextService = ContextService.getInstance()

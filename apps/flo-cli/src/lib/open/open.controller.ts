@@ -5,6 +5,8 @@ import { Logger } from '../logger.service'
 import { getRelativePathOf } from '../utils'
 import { OpenService } from './open.service'
 import { OpenPort, OpenType } from './open.types'
+import { ConfigService } from '../config/config.service'
+import { AppOptionArg, ReuseWindowOptionArg } from '../../cli/shared.options'
 
 const portPredicateMap: Record<OpenType, (port: OpenPort) => boolean> = {
     file: port => port.isFilesSupported,
@@ -12,18 +14,24 @@ const portPredicateMap: Record<OpenType, (port: OpenPort) => boolean> = {
     url: port => port.isUrlsSupported,
 }
 
+export type OpenOptions = {
+    message?: string
+    subject?: string
+    /** Title of the option which doesn't do anything. @default 'Nevermind' */
+    noopTitle?: string | false
+} & Partial<ReuseWindowOptionArg & AppOptionArg>
+
 export class OpenController {
     /** Do not use this constructor directly, use `.init()` instead */
-    constructor(private openService: OpenService) {}
+    constructor(
+        private openService: OpenService,
+        private configService: ConfigService,
+    ) {}
 
-    private async selectPortAndOpen(options: {
-        url: string
-        reuseWindow?: boolean
-        message?: string
-        type: OpenType
-        subject?: string
-        noopTitle?: string | false
-    }) {
+    private async selectPortAndOpen(options: { url: string; type: OpenType } & OpenOptions) {
+        const useDefaultApp = !options.app
+        const app = typeof options.app == 'string' ? options.app : undefined
+
         const openPorts = this.openService.useAllInstalled(
             openPort =>
                 portPredicateMap[options.type](openPort) &&
@@ -35,8 +43,22 @@ export class OpenController {
             return
         }
 
+        if ((useDefaultApp ?? true) || app) {
+            const configuredAppName = app || this.configService.config.openIn?.defaults?.[options.type]
+            const regex = new RegExp('^' + configuredAppName?.split(' ').join('.+'), 'i')
+            const openPort = configuredAppName
+                ? openPorts.find(openPort => regex.test(openPort.name))
+                : undefined
+            if (openPort?.isInstalled()) {
+                const success = openPort.open(options.url, { reuseWindow: options.reuseWindow })
+                if (success) return
+            }
+        }
+
         const noopTitle = options.noopTitle || 'Nevermind'
+
         const noopCallback = () => Logger.log(noopTitle)
+        const subject = options.subject || options.type
         const { openInSelected }: { openInSelected?: () => void } = await prompts({
             type: 'select',
             name: 'openInSelected',
@@ -45,11 +67,11 @@ export class OpenController {
                 ...openPorts.flatMap(openPort => [
                     openPort.isReuseWindowSupported &&
                         options.type == OpenType.Folder && {
-                            title: `Open ${options.subject} in ${openPort.name} (reuse window)`,
+                            title: `Open ${subject} in ${openPort.name} (reuse window)`,
                             value: () => openPort.open(options.url, { reuseWindow: true }),
                         },
                     {
-                        title: `Open ${options.subject} in ${openPort.name}`,
+                        title: `Open ${subject} in ${openPort.name}`,
                         value: () => openPort.open(options.url),
                     },
                 ]),
@@ -66,37 +88,27 @@ export class OpenController {
         callback()
     }
 
-    async openFile(file: string, options?: { message?: string; subject?: string; noopTitle?: string }) {
+    async openFile(file: string, options?: Omit<OpenOptions, 'reuseWindow'>) {
         return await this.selectPortAndOpen({
             url: getRelativePathOf(file, os.homedir()),
             type: OpenType.File,
-            message: options?.message,
-            subject: options?.subject,
-            noopTitle: options?.noopTitle,
+            ...options,
         })
     }
 
-    async openFolder(
-        directory: string,
-        options?: { reuseWindow?: boolean; message?: string; subject?: string; noopTitle?: string },
-    ) {
+    async openFolder(directory: string, options?: OpenOptions) {
         return await this.selectPortAndOpen({
             url: getRelativePathOf(directory, os.homedir()),
             type: OpenType.Folder,
-            reuseWindow: options?.reuseWindow,
-            message: options?.message,
-            subject: options?.subject,
-            noopTitle: options?.noopTitle,
+            ...options,
         })
     }
 
-    async openUrl(url: string, options?: { message?: string; subject?: string; noopTitle?: string }) {
+    async openUrl(url: string, options?: Omit<OpenOptions, 'reuseWindow'>) {
         return await this.selectPortAndOpen({
             url,
             type: OpenType.Url,
-            message: options?.message,
-            subject: options?.subject,
-            noopTitle: options?.noopTitle,
+            ...options,
         })
     }
 
