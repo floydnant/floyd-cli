@@ -1,3 +1,6 @@
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { interpolateVariablesWithAllStrategies } from '../../../../../packages/common/src'
+import { ConfigService } from '../config/config.service'
 import { Logger } from '../logger.service'
 import { SysCallService } from '../sys-call.service'
 import { CustomOpenPortConfig } from './custom-open.schema'
@@ -5,7 +8,10 @@ import { OpenPort, OpenType } from './open.types'
 
 export const createCustomOpenPort = (config: CustomOpenPortConfig) => {
     class CustomOpenPort implements OpenPort {
-        constructor(private sysCallService: SysCallService) {}
+        constructor(
+            private sysCallService: SysCallService,
+            private configService: ConfigService,
+        ) {}
 
         name = config.name
         isReuseWindowSupported = !!config.reuseWindowCommand
@@ -21,11 +27,27 @@ export const createCustomOpenPort = (config: CustomOpenPortConfig) => {
 
             Logger.verbose(`Opening ${url.green} in ${this.name}...`)
 
-            const interpolationRegex = /{{\s*(url|directory|file)\s*}}/g
-            const command =
+            const rawCommand =
                 options?.reuseWindow && this.isReuseWindowSupported && config.reuseWindowCommand
-                    ? config.reuseWindowCommand.trim().replace(interpolationRegex, url)
-                    : config.command.trim().replace(interpolationRegex, url)
+                    ? config.reuseWindowCommand.trim()
+                    : config.command.trim()
+
+            const result = interpolateVariablesWithAllStrategies(
+                rawCommand,
+                { url, directory: url, file: url },
+                this.configService.config.interpolationStrategies,
+            )
+            if (Object.keys(result.interpolatedExpressions).length == 0) {
+                Logger.error(`Could not interpolate ${url} in ${rawCommand}.`)
+
+                if (result.unknownIdentifiers.size > 0)
+                    Logger.error(`=> Unknown variables: ${[...result.unknownIdentifiers].join(', ')}`)
+                // there cannot be any unavailable variables
+
+                return false
+            }
+
+            const command = result.interpolated
 
             try {
                 this.sysCallService.execInherit(command)

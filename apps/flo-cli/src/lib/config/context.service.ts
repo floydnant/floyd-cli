@@ -1,8 +1,10 @@
-import { interpolateVariables } from '@flo/common'
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { interpolateVariablesWithAllStrategies } from '../../../../../packages/common/src'
 import { GitRepository } from '../../adapters/git'
 import { Logger } from '../logger.service'
-import { globalPaths } from './config.vars'
 import { cacheable } from '../utils'
+import { ConfigService } from './config.service'
+import { globalPaths } from './config.vars'
 
 export type CliContext = {
     repoRoot: string
@@ -14,7 +16,10 @@ export type CliContext = {
 
 export class ContextService {
     /** Do not use this constructor directly, use `.init()` instead */
-    constructor(private gitRepo: GitRepository) {}
+    constructor(
+        private gitRepo: GitRepository,
+        private configService: ConfigService,
+    ) {}
 
     private getContext = cacheable((): CliContext & typeof globalPaths => {
         const currentWorktree = this.gitRepo.getCurrentWorktree()
@@ -38,9 +43,13 @@ export class ContextService {
 
     interpolateContextVars(contents: string) {
         const contextVariables = this.context
-        const interpolated = interpolateVariables(contents, contextVariables)
+        const result = interpolateVariablesWithAllStrategies(
+            contents,
+            contextVariables,
+            this.configService.config.interpolationStrategies,
+        )
 
-        return interpolated
+        return result.interpolated
     }
 
     private static instance: ContextService

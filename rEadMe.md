@@ -268,7 +268,7 @@ Only supports files for now.
 }
 ```
 
-### Symlink Step - Comming soon!
+### Symlink Step - Coming soon!
 
 Symlink directories or files instead of copying them
 
@@ -276,9 +276,8 @@ Symlink directories or files instead of copying them
 
 Manipulate the `package.json`:
 
--   Add/Remove scripts
 -   Increment the version
--   Actually that'll be it, do you have more ideas? Hit me up!
+-   Actually that'll be it, since everything else is already possible with the npm cli.
 
 # TODO
 

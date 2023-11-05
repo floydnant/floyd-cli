@@ -42,8 +42,8 @@ cli.hook('preAction', thisCommand => {
     const promptController = PromptController.init()
     const gitService = GitService.init(gitRepo)
     GitController.init(gitRepo, gitService, promptController)
-    ContextService.init(gitRepo)
     const configService = ConfigService.init()
+    ContextService.init(gitRepo, configService)
     OpenController.init(OpenService.init(sysCallService, configService), configService)
 
     const logLevel = thisCommand.opts()['debug'] ? LogLevel.DEBUG : configService.config.logLevel

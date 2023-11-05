@@ -1,7 +1,11 @@
 import fs from 'fs'
 import { z } from 'zod'
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { interpolateVariables, stripJsonComments } from '../../../../../packages/common/src'
+import {
+    InterpolationStrategy,
+    interpolateVariables,
+    stripJsonComments,
+} from '../../../../../packages/common/src'
 import env from '../../../env.json'
 import { Logger } from '../logger.service'
 import { OpenController } from '../open/open.controller'
@@ -11,10 +15,15 @@ import { DEFAULT_LOG_LEVEL, globalPaths } from './config.vars'
 
 export const initConfig = () => {
     const rawDefaultConfig = fs.readFileSync(globalPaths.defaultConfigFile, 'utf-8')
-    const interpolatedDefaultConfig = interpolateVariables(rawDefaultConfig, {
-        cliVersion: env.VERSION,
-        defaultLogLevel: DEFAULT_LOG_LEVEL,
-    })
+    const interpolatedDefaultConfig = interpolateVariables(
+        rawDefaultConfig,
+        {
+            cliVersion: env.VERSION,
+            defaultLogLevel: DEFAULT_LOG_LEVEL,
+            interpolationStrategies: Object.values(InterpolationStrategy).join(', '),
+        },
+        InterpolationStrategy.DollarSign,
+    ).interpolated
 
     fs.mkdirSync(globalPaths.configRoot, { recursive: true })
     fs.writeFileSync(globalPaths.configFile, interpolatedDefaultConfig)
@@ -59,10 +68,12 @@ export const readOrInitConfig = () => {
                     .join('\n') + '\n',
             )
             console.error(e)
+            Logger.error(`Please fix it and try again. File is at ${globalPaths.configFile}`.red)
             process.exit(1)
         }
         if (e instanceof SyntaxError) {
             Logger.error(`Config file is invalid: ${e.message}`.red)
+            Logger.error(`Please fix it and try again. File is at ${globalPaths.configFile}`.red)
             process.exit(1)
         }
 

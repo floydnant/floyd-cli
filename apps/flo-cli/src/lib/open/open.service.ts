@@ -36,7 +36,7 @@ export class OpenService {
             .filter(openPort => predicate(openPort) && openPort.isInstalled())
 
         if (installedOpenTypes.length === 0)
-            installedOpenTypes.push(new OpenDefaultService(this.sysCallService))
+            installedOpenTypes.push(new OpenDefaultService(this.sysCallService, this.configService))
 
         return installedOpenTypes
     }

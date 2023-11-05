@@ -1,7 +1,9 @@
 {
+    // Yes, you can use comments in here
     "version": "$cliVersion",
     "loglevel": "$defaultLogLevel",
-    // Yes, you can use comments here
+    // Available interpolation strategies include: $interpolationStrategies
+    "interpolationStrategies": ["handleBars", "dollarSign", "javascript"], // Fun fact: the javascript strategy allows you to ACTUALLY evaluate js expressions
     "openIn": {
         // Use these defaults to stop getting asked which app to use each time
         "defaults": {
@@ -61,7 +63,7 @@
     },
     "projects": {
         "floyd-cli": {
-            "root": "$cliRoot",
+            "root": "{{ cliRoot }}",
             "worktreeHooks": {
                 "onCreate": "prepare-floyd-cli-worktree",
                 "onCheckout": "update-floyd-cli-worktree"
@@ -83,24 +85,23 @@
         },
         {
             // Please don't mess with this workflow, otherwise you can't install updates anymore
-            // (it's actually your own problem, but I'm trying to help you).
             "name": "Update floyd-cli",
             "workflowId": "update",
             "description": "Pulls changes and rebuilds flo-cli",
             "steps": [
                 {
                     "name": "Pull latest changes",
-                    "cwd": "$cliRoot",
+                    "cwd": "{{ cliRoot }}",
                     "command": "git pull --rebase"
                 },
                 {
                     "name": "Install dependencies",
-                    "cwd": "$cliRoot",
+                    "cwd": "{{ cliRoot }}",
                     "command": "npm i"
                 },
                 {
                     "name": "Rebuild floyd-cli",
-                    "cwd": "$cliRoot",
+                    "cwd": "{{ cliRoot }}",
                     "command": "npm run build"
                 },
                 {
@@ -154,16 +155,16 @@
             "steps": [
                 {
                     "name": "Copy environment variables",
-                    "copyFrom": "$repoRoot/.env",
-                    "to": "$newWorktreeRoot/.env"
+                    "copyFrom": "{{ repoRoot }}/.env",
+                    "to": "{{ newWorktreeRoot }}/.env"
                 },
                 {
                     "name": "Copy node_modules",
-                    "command": "cp -R $repoRoot/node_modules $newWorktreeRoot/node_modules"
+                    "command": "cp -R {{ repoRoot }}/node_modules {{ newWorktreeRoot }}/node_modules"
                 },
                 {
                     "command": "npm i",
-                    "cwd": "$newWorktreeRoot"
+                    "cwd": "{{ newWorktreeRoot }}"
                 }
             ]
         },
@@ -173,7 +174,7 @@
             "steps": [
                 {
                     "command": "npm i",
-                    "cwd": "$newWorktreeRoot"
+                    "cwd": "{{ newWorktreeRoot }}"
                 }
             ]
         }
