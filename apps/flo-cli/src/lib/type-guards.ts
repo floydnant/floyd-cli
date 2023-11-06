@@ -11,3 +11,7 @@ export const isClass = (
 }
 
 export const isNumber = (value: string) => !isNaN(parseInt(value))
+
+export const isHttpUrl = (value: string) => {
+    return value.startsWith('http://') || value.startsWith('https://')
+}

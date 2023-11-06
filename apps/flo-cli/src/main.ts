@@ -5,6 +5,7 @@ import 'colors'
 import { Command } from 'commander'
 import env from '../env.json'
 import { GitRepository } from './adapters/git'
+import { matchGitError } from './adapters/git/git.errors'
 import { checksCommand } from './cli/checks'
 import { configCommand } from './cli/config'
 import { projectsCommand } from './cli/projects'
@@ -13,7 +14,7 @@ import { runCommand } from './cli/workflows'
 import { worktreesCommand } from './cli/worktrees'
 import { ConfigService } from './lib/config/config.service'
 import { ContextService } from './lib/config/context.service'
-import { gracefullyHandle } from './lib/errors.utils'
+import { Exception } from './lib/errors.utils'
 import { GitController } from './lib/git.controller'
 import { GitService } from './lib/git.service'
 import { Logger } from './lib/logger.service'
@@ -56,4 +57,31 @@ cli.hook('preAction', async thisCommand => {
     OpenController.init(OpenService.init(sysCallService, configService), configService, promptController)
 })
 
-gracefullyHandle(() => cli.parseAsync(process.argv))
+const main = async () => {
+    try {
+        await cli.parseAsync(process.argv)
+    } catch (e) {
+        const error = matchGitError(e) ?? e
+
+        const prefix = 'FATAL:'.bgRed.black
+        if (error instanceof Error) {
+            Logger.log()
+            Logger.error(prefix, error.message.red)
+
+            if (error instanceof Exception && error.originalMessage) {
+                Logger.verbose(error.originalMessage.trim())
+            }
+
+            Logger.debug(error)
+
+            const exitCode = error instanceof Exception && error.exitCode ? error.exitCode : 1
+            process.exit(exitCode)
+        }
+
+        Logger.error(prefix, 'Unknown error'.red)
+        Logger.debug(error)
+        process.exit(1)
+    }
+}
+
+main()

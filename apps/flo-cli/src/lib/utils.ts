@@ -30,7 +30,7 @@ export const getRelativePathOf = (pathString: string, from?: string) => {
     return (isRelativeToHomeDir ? '~/' : '') + relativePath || './'
 }
 
-export const getFlags = (...argsArr: Record<string, string | number | boolean | undefined | null>[]) => {
+export const makeArguments = (...argsArr: Record<string, string | number | boolean | undefined | null>[]) => {
     const merged = argsArr.map(args => {
         return Object.entries(args)
             .map(([flag, value]) => {
@@ -58,6 +58,21 @@ export const getFlags = (...argsArr: Record<string, string | number | boolean | 
 // )
 // console.log(args({ '--some-flag': 'with stuff', '-c': false, '-m': true }))
 // console.log(flags)
+
+const quoteMap = {
+    single: "'",
+    double: '"',
+    backticks: '`',
+}
+/**
+ * Returns the given contents wrapped in quotes.
+ *
+ * If contents is falsy, an empty string is returned.
+ */
+export const wrapQuotes = (
+    contents: string | undefined | null,
+    quotes: 'single' | 'double' | 'backticks' = 'single',
+) => (contents ? `${quoteMap[quotes]}${contents}${quoteMap[quotes]}` : '')
 
 export const getCacheKey = (stuff: object | undefined) => JSON.stringify(stuff || {})
 
@@ -108,4 +123,8 @@ export const fuzzyMatch = <T>(list: T[], query: string, selector: (item: T) => s
     })
 
     return prioritized
+}
+
+export const red = (strings: TemplateStringsArray, ...values: string[]) => {
+    return String.raw({ raw: strings.map(str => str.red) }, ...values.map(str => str.red))
 }

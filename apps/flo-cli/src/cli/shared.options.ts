@@ -26,3 +26,7 @@ export const waitForCloseOption = createOption(
     'Wait for the app to close before continuing - if supported',
 ).default(false)
 export type WaitForCloseOptionArg = { waitForClose: boolean }
+
+/** `-s, --skip-hooks` */
+export const skipHooksOption = createOption('-s, --skip-hooks', 'Skip running worktree hooks').default(false)
+export type SkipHooksOptionArg = { skipHooks: boolean }

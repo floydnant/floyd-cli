@@ -13,6 +13,7 @@ import { PromptController } from '../../lib/prompt.controller'
 import { SysCallService } from '../../lib/sys-call.service'
 import { WorkflowController } from '../../lib/workflows/workflow.controller'
 import { GithubRepository } from '../../adapters/github'
+import { GitService } from '../../lib/git.service'
 
 export const createWorktreeCommand = new Command()
     .createCommand('create')
@@ -56,6 +57,7 @@ export const createWorktreeCommand = new Command()
             const controller = CreateWorktreeController.init(
                 WorktreeService.init(gitRepo, projectsService, workflowService),
                 gitRepo,
+                GitService.getInstance(),
                 GitController.getInstance(),
                 ContextService.getInstance(),
                 OpenController.getInstance(),

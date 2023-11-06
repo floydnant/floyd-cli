@@ -11,12 +11,14 @@ import { selectPullRequest } from './select-pull-request'
 import { setupWorktree } from './setup-worktree'
 import { WorktreeHook } from './worktree-config.schemas'
 import { WorktreeService } from './worktree.service'
+import { GitService } from '../git.service'
 
 export class CreateWorktreeController {
     /** Do not use this constructor directly, use `.init()` instead */
     constructor(
         private worktreeService: WorktreeService,
         private gitRepo: GitRepository,
+        private gitService: GitService,
         private gitController: GitController,
         private contextService: ContextService,
         private openController: OpenController,
@@ -74,7 +76,7 @@ export class CreateWorktreeController {
             }
 
             branch = branchSelection.branch
-            if (branchSelection.isNew) this.gitRepo.createBranch(branch)
+            if (branchSelection.isNew) this.gitService.createBranch(branch)
         }
         if (!branch) return
 
@@ -93,8 +95,8 @@ export class CreateWorktreeController {
         if (useRemoteBranches) this.gitRepo.gitFetch()
         // create branch if it doesn't exist yet
         else if (!this.gitRepo.getBranches().includes(branch)) {
-            Logger.log(`\nBranch ${branch.yellow} does not exists yet, creating it for you now...`.dim)
-            this.gitRepo.createBranch(branch, null)
+            Logger.log(`\nBranch ${branch.yellow} does not exists yet, creating it for you now...`)
+            this.gitService.createBranch(branch, undefined, { logMessage: false })
         }
 
         const worktree = setupWorktree({
