@@ -5,9 +5,9 @@ import {
     getOpenPullRequests,
     getPullRequest,
 } from '../../adapters/github'
-import { assertGitHubInstalled } from '../../lib/utils'
 import { printChecks } from './lib/print-checks'
 import { rerunChecks } from './lib/rerun-checks'
+import { assertGitHubInstalled } from '../../adapters/git'
 
 const checksHandler = (
     prNumberOrBranch: number | string | undefined,

@@ -1,8 +1,8 @@
 import { execSync } from 'child_process'
-import { exec } from '../../lib/utils'
 import { PullRequest, PullRequestWithChecks, Run } from './github.model'
 import { MaskOf } from '@flo/common'
 import { Logger } from '../../lib/logger.service'
+import { SysCallService } from '../../lib/sys-call.service'
 
 const getFieldSelector = <TMask extends MaskOf<PullRequest>>(mask: TMask) => {
     const keys = Object.entries(mask)
@@ -69,9 +69,11 @@ export const getOpenPullRequests = <TOpts extends { checks?: boolean }>(
 }
 
 export const viewChecks = (prNumberOrBranch: number | string | undefined) => {
+    const sysCallService = SysCallService.getInstance()
+
     // gh throws if there are failed checks
     try {
-        exec(`gh pr checks ${prNumberOrBranch ?? ''}`)
+        sysCallService.execInherit(`gh pr checks ${prNumberOrBranch ?? ''}`)
     } catch {
         // silently do nothing
     }

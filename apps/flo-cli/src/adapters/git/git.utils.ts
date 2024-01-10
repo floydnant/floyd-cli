@@ -1,7 +1,7 @@
+import { SysCallService } from '../../lib/sys-call.service'
 import { Logger } from '../../lib/logger.service'
 import { getRelativePathOf } from '../../lib/utils'
 import { Worktree } from './git.model'
-import { GitRepository } from './git.repo'
 
 export const fixBranchName = (branch: string) =>
     branch.replace('refs/', '').replace('heads/', '').replace('remotes/', '').replace('origin/', '')
@@ -25,6 +25,7 @@ export const getWorktreeDisplayStr = (tree: Worktree, isDirty?: boolean) => {
     return `${checkedOut} ${info ? `(${info}) ` : ''}${tree.directory.dim}`
 }
 
+/** Returns a folder name with incremented index (starting at 1) */
 export const getNextWorktreeName = (worktrees: Worktree[]) => {
     const worktreesIndicies = worktrees
         .map(worktree => /worktree-\d+/.exec(worktree.directory)?.[0]?.match(/\d+/)?.[0])
@@ -45,10 +46,7 @@ export const getBranchWorktreeString = (worktrees: Worktree[], branch: string | 
     return ` ${'(checked out'.red} ${pathToWorkTree}${')'.red}`
 }
 
-export const getWorktreeFromBranch = (
-    branch: string,
-    worktrees = GitRepository.getInstance().getWorktrees(),
-) => {
+export const getWorktreeFromBranch = (branch: string, worktrees: Worktree[]) => {
     const worktree = worktrees.find(tree => {
         return tree.branch == branch || tree.branch == fixBranchName(branch)
     })
@@ -58,4 +56,15 @@ export const getWorktreeFromBranch = (
     }
 
     return worktree
+}
+
+export const assertGitHubInstalled = () => {
+    const sysCallService = SysCallService.getInstance()
+    if (sysCallService.testCommand('gh --version')) return
+
+    Logger.getInstance().error(
+        'Please install gh cli with `brew install gh` or go here: https://cli.github.com/manual/installation'
+            .red,
+    )
+    process.exit(1)
 }

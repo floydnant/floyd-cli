@@ -12,7 +12,8 @@ export const addCommand = new Command()
     .argument('[path]', 'Path to the project', '<cwd>')
     .action((options: { path?: string }) => {
         const configService = ConfigService.getInstance()
-        const projectsService = ProjectsService.init(GitRepository.getInstance())
+        const gitRepo = GitRepository.getInstance()
+        const projectsService = ProjectsService.init(gitRepo, configService)
 
         const { projectId, root } = projectsService.getProject(options.path)
         Logger.log("As of right now, we can't update your config automatically.")

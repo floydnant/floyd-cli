@@ -1,14 +1,7 @@
 import path from 'path'
-import {
-    GitRepository,
-    Worktree,
-    deleteBranch,
-    getCurrentBranch,
-    getNextWorktreeName,
-    gitCheckout,
-} from '../../../adapters/git'
-import { Logger } from '../../../lib/logger.service'
-import { assertGitHubInstalled, exec } from '../../../lib/utils'
+import { GitRepository, Worktree, assertGitHubInstalled, getNextWorktreeName } from '../../adapters/git'
+import { Logger } from '../logger.service'
+import { SysCallService } from '../sys-call.service'
 
 export const setupWorktree = (opts: {
     worktreePrefix: boolean
@@ -19,9 +12,12 @@ export const setupWorktree = (opts: {
     pullRequestToCheckout?: string
     existingWorktrees: Worktree[]
 }): Worktree => {
-    const repoRootDir = GitRepository.getInstance().getRepoRootDir()
+    const gitRepo = GitRepository.getInstance()
+    const sysCallService = SysCallService.getInstance()
+
+    const repoRootDir = gitRepo.getRepoRootDir()
     if (!repoRootDir) {
-        Logger.getInstance().error('Not in a git repository')
+        Logger.error('Not in a git repository')
         process.exit(1)
     }
     const repoFolderName = path.basename(repoRootDir)
@@ -40,22 +36,24 @@ export const setupWorktree = (opts: {
         opts.directory || path.join(repoRootDir, '../', repoFolderName + '.worktrees/', worktreeName)
 
     Logger.getInstance().log(`\nCreating worktree in ${worktreePath.yellow}...`.dim)
-    exec(`git worktree add ${worktreePath} --quiet`)
+    // @TODO: this must be a gitRepo operation
+    sysCallService.execInherit(`git worktree add ${worktreePath} --quiet`)
 
     let worktreeBranch = worktreeName
 
     if (opts.branchToCheckout && opts.branchToCheckout != worktreeBranch) {
-        gitCheckout(opts.branchToCheckout, worktreePath)
+        gitRepo.gitCheckout(opts.branchToCheckout, worktreePath)
         worktreeBranch = opts.branchToCheckout
 
-        deleteBranch(worktreeName, null)
+        gitRepo.deleteBranch(worktreeName)
     } else if (opts.pullRequestToCheckout && opts.pullRequestToCheckout != worktreeBranch) {
         assertGitHubInstalled()
 
-        exec(`gh pr checkout ${opts.pullRequestToCheckout}`, worktreePath)
-        worktreeBranch = getCurrentBranch(worktreePath)
+        // @TODO: this must be a githubRepo operation
+        sysCallService.execInherit(`gh pr checkout ${opts.pullRequestToCheckout}`, { cwd: worktreePath })
+        worktreeBranch = gitRepo.getCurrentBranch(worktreePath)
 
-        deleteBranch(worktreeName, null)
+        gitRepo.deleteBranch(worktreeName)
     }
 
     return {

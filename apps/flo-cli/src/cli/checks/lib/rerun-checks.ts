@@ -8,14 +8,16 @@ import {
     getRun,
     getRunIdFromCheck,
 } from '../../../adapters/github'
-import { exec } from '../../../lib/utils'
 import { getCheckChoices } from './check-choices'
 import { printChecks } from './print-checks'
+import { SysCallService } from '../../../lib/sys-call.service'
 
 export const rerunChecks = async (
     prs: PullRequestWithChecks[],
     refetchPrs: () => PullRequestWithChecks[],
 ) => {
+    const sysCallService = SysCallService.getInstance()
+
     const checksChoices = getCheckChoices(prs)
 
     if (!checksChoices.length) return console.log('No failed checks to rerun'.dim)
@@ -124,7 +126,7 @@ export const rerunChecks = async (
         )
 
         try {
-            exec(command)
+            sysCallService.execInherit(command)
         } catch {
             console.log(
                 'Failed to rerun, this might be because there is already a running job in this workflow'.red,

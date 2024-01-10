@@ -1,62 +1,6 @@
-import { execSync } from 'child_process'
 import 'colors'
 import path from 'path'
-import { Logger } from './logger.service'
-
-export const exec = (command: string, workingDir?: string) =>
-    execSync(command, { stdio: 'inherit', cwd: workingDir })
-
-// This is random WIP btw, don't bother
-export class Exec {
-    static execSync(command: string, options: Parameters<typeof execSync>[1] = {}) {
-        Logger.getInstance().debug(`Executing: ${command.cyan}`)
-        return execSync(command, options)?.toString()
-    }
-
-    static exec(command: string, options: Parameters<typeof execSync>[1] = {}) {
-        Logger.getInstance().debug(`Executing: ${command.cyan}`)
-        return execSync(command, { stdio: 'inherit', ...options })?.toString()
-    }
-}
-
-// @TODO: this should be named `testCommand`
-export const test = (command: string) => {
-    try {
-        execSync(command, { stdio: 'ignore' })
-        return true
-    } catch {
-        return false
-    }
-}
-
-export const assertGitHubInstalled = () => {
-    if (test('gh --version')) return
-
-    Logger.getInstance().error(
-        'Please install gh cli with `brew install gh` or go here: https://cli.github.com/manual/installation'
-            .red,
-    )
-    process.exit(1)
-}
-
-export const isCodeInstalled = () => test('code --version')
-export const assertCodeInstalled = () => {
-    if (isCodeInstalled()) return
-
-    Logger.getInstance().error('Please install vscode cli `code`'.red)
-    process.exit(1)
-}
-export const openWithVscode = (directory: string, opts?: { reuseWindow?: boolean }) => {
-    assertCodeInstalled()
-
-    Logger.getInstance().log(
-        `Opening ${directory.yellow} ${opts?.reuseWindow ? 'in same window' : 'in new window'}...`.dim,
-    )
-    exec(`code ${opts?.reuseWindow ? '--reuse-window' : ''} ${directory}`)
-}
-
-export const isNvimInstalled = () => test('nvim --version')
-export const isVimInstalled = () => test('vim --version')
+import os from 'os'
 
 export const isSubDir = (dir: string, parentDir: string) => {
     const relative = path.relative(parentDir, dir)
@@ -77,7 +21,14 @@ export const getPaddedStr = (str: string, fillString = '-') => {
     return str + ' ' + fillString.repeat(length).dim
 }
 
-export const getRelativePathOf = (pathString: string) => path.relative(process.cwd(), pathString) || './'
+export const getRelativePathOf = (pathString: string, from?: string) => {
+    const cwd = process.cwd()
+    const homedir = os.homedir()
+    const isRelativeToHomeDir = from == homedir && cwd != homedir
+    const relativePath = path.relative(from || cwd, pathString)
+
+    return (isRelativeToHomeDir ? '~/' : '') + relativePath || './'
+}
 
 export const getFlags = (...argsArr: Record<string, string | number | boolean | undefined | null>[]) => {
     const merged = argsArr.map(args => {
@@ -107,3 +58,22 @@ export const getFlags = (...argsArr: Record<string, string | number | boolean | 
 // )
 // console.log(args({ '--some-flag': 'with stuff', '-c': false, '-m': true }))
 // console.log(flags)
+
+export const getCacheKey = (stuff: object | undefined) => JSON.stringify(stuff || {})
+
+// @TODO: this should be called `memoized`
+export const cacheable = <TArgs extends unknown[], TReturn>(callback: (...args: TArgs) => TReturn) => {
+    let cache: { [key: string]: TReturn } = {}
+    const resetCache = () => {
+        cache = {}
+    }
+
+    const memoizedCallback = (...args: TArgs) => {
+        const cacheKey = getCacheKey(args)
+        if (!(cacheKey in cache)) cache[cacheKey] = callback(...args)
+
+        return cache[cacheKey] as TReturn
+    }
+
+    return Object.assign(memoizedCallback, { resetCache })
+}
