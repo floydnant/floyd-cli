@@ -7,10 +7,9 @@ export type Project = {
     projectConfig: ProjectConfig
     isCurrent: boolean
     worktrees: Worktree[]
+    aliases: string[]
 }
 
 const maskOf = <TShape extends z.ZodRawShape>(schema: z.ZodObject<TShape>): Record<keyof TShape, true> => {
     return Object.fromEntries(Object.keys(schema.shape).map(key => [key, true])) as Record<keyof TShape, true>
 }
-
-const projectConfigSchema = z.object({ root: z.string() })

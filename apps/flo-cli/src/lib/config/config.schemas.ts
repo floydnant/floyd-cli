@@ -10,7 +10,18 @@ import { OpenType } from '../open/open.types'
 import { InterpolationStrategy } from '../../../../../packages/common/src'
 
 export type ProjectConfig = z.infer<typeof projectConfigSchema>
-export const projectConfigSchema = z.object({ root: z.string() }).merge(worktreeConfigSchema)
+export const projectConfigSchema = z
+    .object({
+        root: z.string(),
+        alias: z
+            .union([z.string(), z.string().array()])
+            .optional()
+            .transform(value => {
+                if (typeof value == 'string') return [value]
+                return value
+            }),
+    })
+    .merge(worktreeConfigSchema)
 
 export type BaseConfig = z.infer<typeof baseConfigSchema>
 export const baseConfigSchema = z.object({

@@ -31,8 +31,13 @@ export class ProjectsService {
             const isCurrent = projectRoot === repoRoot
             // const prefix = isCurrent ? ' -> ' : '   '
             const projectDisplayStr = getProjectDisplayStr(
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                { projectId, projectConfig: projects[projectId]!, isCurrent },
+                {
+                    projectId,
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    projectConfig: projects[projectId]!,
+                    isCurrent,
+                    aliases: [], // We don't care about aliases here
+                },
                 true,
             )
             const worktrees = this.gitRepo.getWorktrees({ cwd: projectRoot })
@@ -62,6 +67,7 @@ export class ProjectsService {
                 projectId,
                 projectConfig,
                 isCurrent,
+                aliases: projectConfig.alias || [],
                 get worktrees() {
                     // this operation is expensive, so we only do it when needed
                     // + `getWorktrees` is memoized, so it won't be expensive the second time we need it
