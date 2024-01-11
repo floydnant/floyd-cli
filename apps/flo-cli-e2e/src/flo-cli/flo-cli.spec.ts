@@ -1,12 +1,12 @@
 import { execSync } from 'child_process'
-import { join } from 'path'
+import { floCommand } from '../invoke-cli'
+
+// @TODO: e2e tests
 
 describe('CLI tests', () => {
-    it('should print a message', () => {
-        const cliPath = join(process.cwd(), 'dist/apps/apps/flo-cli')
+    it('should print a help message', () => {
+        const output = execSync(`${floCommand} --help`).toString()
 
-        const output = execSync(`node ${cliPath}`).toString()
-
-        expect(output).toMatch(/Hello World/)
+        expect(output).toBeTruthy()
     })
 })
