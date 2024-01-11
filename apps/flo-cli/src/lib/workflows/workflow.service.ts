@@ -1,5 +1,4 @@
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { assertUnreachable } from '../../../../../packages/common/src'
+import { assertUnreachable } from '@flo/common'
 import { ConfigService } from '../config/config.service'
 import { ContextService } from '../config/context.service'
 import { Logger } from '../logger.service'

@@ -1,6 +1,4 @@
 import { copyFileSync } from 'fs'
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { assertUnreachable } from '../../../../../packages/common/src'
 import { Logger } from '../logger.service'
 import { PromptController } from '../prompt.controller'
 import { SysCallService } from '../sys-call.service'
@@ -15,6 +13,7 @@ import {
 import { printStep } from './print-workflow'
 import { WorkflowService } from './workflow.service'
 import { CliContext, ContextService } from '../config/context.service'
+import { assertUnreachable } from '@flo/common'
 
 export class WorkflowController {
     /** Do not use this constructor directly, use `.init()` instead */

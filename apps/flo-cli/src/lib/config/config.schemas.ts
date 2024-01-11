@@ -6,8 +6,7 @@ import { validateWorkflows } from '../workflows/validate-workflows'
 import { LogLevel } from '../logger.types'
 import { customOpenPortConfigSchema } from '../open/custom-open.schema'
 import { OpenType } from '../open/open.types'
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { InterpolationStrategy } from '../../../../../packages/common/src'
+import { InterpolationStrategy } from '@flo/common'
 
 export type ProjectConfig = z.infer<typeof projectConfigSchema>
 export const projectConfigSchema = z.object({ root: z.string() }).merge(worktreeConfigSchema)

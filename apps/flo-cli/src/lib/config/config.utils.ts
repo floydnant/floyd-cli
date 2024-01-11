@@ -1,17 +1,12 @@
 import fs from 'fs'
 import { z } from 'zod'
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import {
-    InterpolationStrategy,
-    interpolateVariables,
-    stripJsonComments,
-} from '../../../../../packages/common/src'
 import env from '../../../env.json'
 import { Logger } from '../logger.service'
 import { OpenController } from '../open/open.controller'
 import { indent } from '../utils'
 import { globalConfigSchema } from './config.schemas'
 import { DEFAULT_LOG_LEVEL, globalPaths } from './config.vars'
+import { InterpolationStrategy, interpolateVariables, stripJsonComments } from '@flo/common'
 
 export const initConfig = () => {
     const rawDefaultConfig = fs.readFileSync(globalPaths.defaultConfigFile, 'utf-8')

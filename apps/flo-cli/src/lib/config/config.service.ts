@@ -1,4 +1,3 @@
-// eslint-disable-next-line @nx/enforce-module-boundaries
 import { Config } from './config.schemas'
 import { readOrInitConfig } from './config.utils'
 

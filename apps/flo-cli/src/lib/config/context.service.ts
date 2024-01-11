@@ -1,5 +1,4 @@
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { interpolateVariablesWithAllStrategies } from '../../../../../packages/common/src'
+import { interpolateVariablesWithAllStrategies } from '@flo/common'
 import { GitRepository } from '../../adapters/git'
 import { Logger } from '../logger.service'
 import { cacheable } from '../utils'

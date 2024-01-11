@@ -1,5 +1,4 @@
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { interpolateVariablesWithAllStrategies } from '../../../../../packages/common/src'
+import { interpolateVariablesWithAllStrategies } from '@flo/common'
 import { ConfigService } from '../config/config.service'
 import { Logger } from '../logger.service'
 import { SysCallService } from '../sys-call.service'
