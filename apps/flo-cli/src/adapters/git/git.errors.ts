@@ -161,10 +161,11 @@ export class NotAValidBranchNameException extends Exception {
 }
 
 const gitExceptionMap = {
-    k1: NotAGitRepositoryException,
-    k2: PathspecDidNotMatchFilesException,
-    k3: InvalidReferenceException,
-} satisfies Record<string, CustomExceptionConstructor>
+    [GitExceptionCode.NOT_A_GIT_REPOSITORY]: NotAGitRepositoryException,
+    [GitExceptionCode.PATHSPEC_DID_NOT_MATCH_ANY_FILES]: PathspecDidNotMatchFilesException,
+    [GitExceptionCode.INVALID_REFERENCE]: InvalidReferenceException,
+    [GitExceptionCode.NOT_A_VALID_BRANCH_NAME]: NotAValidBranchNameException,
+} satisfies Record<GitExceptionCode, CustomExceptionConstructor>
 const gitExceptions = Object.values(gitExceptionMap)
 
 export type GitExceptionConstructor = (typeof gitExceptionMap)[keyof typeof gitExceptionMap]
