@@ -43,13 +43,13 @@
             },
             {
                 "name": "Kitty",
-                "command": "open -a kitty.app {{directory}}",
+                "command": "open -a kitty.app {{ directory }}",
                 "checkInstalledApp": "kitty.app",
                 "supportedTypes": ["folder"]
             },
             {
                 "name": "Kitty (attached)",
-                "command": "kitty {{directory}}",
+                "command": "kitty {{ directory }}",
                 "checkInstalledCommand": "kitty --version",
                 "supportedTypes": ["folder"]
             },
@@ -65,8 +65,8 @@
         "floyd-cli": {
             "root": "{{ cliRoot }}",
             "worktreeHooks": {
-                "onCreate": "prepare-floyd-cli-worktree",
-                "onCheckout": "update-floyd-cli-worktree"
+                "onCreate": "floyd-cli:prepare-worktree",
+                "onCheckout": "floyd-cli:update-worktree"
             }
         }
     },
@@ -92,12 +92,12 @@
                 {
                     "name": "Pull latest changes",
                     "cwd": "{{ cliRoot }}",
-                    "command": "git pull --rebase"
+                    "command": "git pull --rebase --autostash"
                 },
                 {
                     "name": "Install dependencies",
                     "cwd": "{{ cliRoot }}",
-                    "command": "npm i"
+                    "command": "npm ci"
                 },
                 {
                     "name": "Rebuild floyd-cli",
@@ -105,7 +105,7 @@
                     "command": "npm run build"
                 },
                 {
-                    "workflowId": "welcome"
+                    "command": "echo 'Flo-cli has been updated to version {{ cliVersion }}'"
                 }
             ]
         },
@@ -151,7 +151,7 @@
         },
         {
             "name": "Setup floyd-cli worktree",
-            "workflowId": "prepare-floyd-cli-worktree",
+            "workflowId": "floyd-cli:prepare-worktree",
             "steps": [
                 {
                     "name": "Copy environment variables",
@@ -170,7 +170,7 @@
         },
         {
             "name": "Update floyd-cli worktree (on checkout)",
-            "workflowId": "update-floyd-cli-worktree",
+            "workflowId": "floyd-cli:update-worktree",
             "steps": [
                 {
                     "command": "npm i",

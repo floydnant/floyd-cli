@@ -11,6 +11,7 @@ export type CliContext = {
     cwd: string
     newWorktreeRoot: string
     // localConfigRoot: string
+    cliVersion: string
 }
 
 export class ContextService {
@@ -30,6 +31,7 @@ export class ContextService {
             cwd: process.cwd(),
             // will be overwritten at a later point when a worktree is created
             newWorktreeRoot: currentWorktree?.directory || '<$newWorktreeRoot_not_applicable>',
+            cliVersion: this.configService.config.version,
         }
     })
     get context() {
@@ -41,10 +43,9 @@ export class ContextService {
     }
 
     interpolateContextVars(contents: string) {
-        const contextVariables = this.context
         const result = interpolateVariablesWithAllStrategies(
             contents,
-            contextVariables,
+            this.context,
             this.configService.config.interpolationStrategies,
         )
 
