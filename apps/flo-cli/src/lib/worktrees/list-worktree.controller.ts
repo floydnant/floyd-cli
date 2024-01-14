@@ -11,8 +11,10 @@ export class ListWorktreeController {
     ) {}
 
     listWorktrees(opts: { logs?: boolean | string }) {
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
         const worktrees = this.gitRepo
-            .getWorktrees()
+            .getWorktrees(cwd)
             .map(tree => {
                 const worktreeStr = getWorktreeDisplayStr(tree)
 

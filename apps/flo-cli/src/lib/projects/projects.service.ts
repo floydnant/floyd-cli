@@ -23,7 +23,9 @@ export class ProjectsService {
     }
 
     printProjects(projects: Record<string, ProjectConfig>) {
-        const repoRoot = this.gitRepo.getRepoRootDir()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        const repoRoot = this.gitRepo.getRepoRootDir(cwd)
 
         for (const projectId in projects) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -35,7 +37,7 @@ export class ProjectsService {
                 { projectId, projectConfig: projects[projectId]!, isCurrent },
                 true,
             )
-            const worktrees = this.gitRepo.getWorktrees({ cwd: projectRoot })
+            const worktrees = this.gitRepo.getWorktrees(projectRoot)
             const worktreeNames = worktrees
                 .map(
                     tree =>
@@ -52,11 +54,13 @@ export class ProjectsService {
     }
 
     resolveProjectMap(projectMap: Record<string, ProjectConfig>): Project[] {
-        const repoRoot = this.gitRepo.getRepoRootDir()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        const repoRoot = this.gitRepo.getRepoRootDir(cwd)
 
         const projects = Object.entries(projectMap).map(([projectId, projectConfig]) => {
             const isCurrent = projectConfig.root === repoRoot
-            const getWorktrees = () => this.gitRepo.getWorktrees({ cwd: projectConfig.root })
+            const getWorktrees = () => this.gitRepo.getWorktrees(projectConfig.root)
 
             return {
                 projectId,

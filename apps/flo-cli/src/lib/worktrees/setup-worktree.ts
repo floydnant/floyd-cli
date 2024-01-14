@@ -15,7 +15,9 @@ export const setupWorktree = (opts: {
     const gitRepo = GitRepository.getInstance()
     const sysCallService = SysCallService.getInstance()
 
-    const repoRootDir = gitRepo.getRepoRootDir()
+    // @TODO: pass cwd as an option / get from context
+    const cwd = process.cwd()
+    const repoRootDir = gitRepo.getRepoRootDir(cwd)
     if (!repoRootDir) {
         Logger.error('Not in a git repository')
         process.exit(1)

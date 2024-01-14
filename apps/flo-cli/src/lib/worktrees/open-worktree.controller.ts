@@ -23,7 +23,9 @@ export class OpenWorktreeController {
     openWorktree = async (
         opts: { branch: string | undefined; subDir?: string } & ReuseWindowOptionArg & AppOptionArg,
     ) => {
-        const worktrees = this.gitRepo.getWorktrees()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        const worktrees = this.gitRepo.getWorktrees(cwd)
         const workflow = this.worktreeService.getWorktreeHook(WorktreeHook.BeforeOpen)
         const openOpts = { reuseWindow: opts.reuseWindow, app: opts.app }
 

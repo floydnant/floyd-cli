@@ -35,7 +35,9 @@ export class CreateWorktreeController {
         worktreePrefix: boolean
         skipHooks: boolean
     }) => {
-        const worktrees = this.gitRepo.getWorktrees()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        const worktrees = this.gitRepo.getWorktrees(cwd)
         const useRemoteBranches = !!opts.upstreamBranch || !!opts.pullRequest
         // @TODO: we need to look for remote branches differently
         // const branches = this.gitRepo.getBranches(useRemoteBranches)

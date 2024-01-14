@@ -21,7 +21,9 @@ export class GitController {
         allowCheckedOutBranches?: boolean
     }): Promise<{ branch: string; isNew: boolean } | null> {
         const branches = this.gitRepo.getBranches()
-        const worktrees = this.gitRepo.getWorktrees()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        const worktrees = this.gitRepo.getWorktrees(cwd)
 
         selectionScope: {
             // If there are no branches (which is impossible btw) and we're not allowed to create new ones, we don't need to ask the user
@@ -72,7 +74,9 @@ export class GitController {
     }
 
     private getWorktreeChoices(worktrees?: Worktree[]) {
-        worktrees ??= this.gitRepo.getWorktrees()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        worktrees ??= this.gitRepo.getWorktrees(cwd)
 
         return worktrees.map(worktree => {
             const isDirty = !!this.gitRepo.getGitStatus(worktree.directory)

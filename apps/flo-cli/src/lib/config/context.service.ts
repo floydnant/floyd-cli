@@ -23,10 +23,12 @@ export class ContextService {
 
     private getContext = cacheable((): CliContext & typeof globalPaths => {
         const currentWorktree = this.gitRepo.getCurrentWorktree()
+        // @TODO: pass cwd as an option
+        const cwd = process.cwd()
         return {
             ...globalPaths,
             // localConfigRoot: localConfigFolder, // @TODO: @floydnant
-            repoRoot: this.gitRepo.getRepoRootDir() || '<$repoRoot_not_applicable>',
+            repoRoot: this.gitRepo.getRepoRootDir(cwd) || '<$repoRoot_not_applicable>',
             worktreeRoot: currentWorktree?.directory || '<$worktreeRoot_not_applicable>',
             cwd: process.cwd(),
             // will be overwritten at a later point when a worktree is created

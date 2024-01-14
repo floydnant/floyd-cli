@@ -20,7 +20,9 @@ export class DeleteWorktreeController {
         deleteBranch?: boolean
         forceDeleteBranch?: boolean
     }) => {
-        const worktrees = this.gitRepo.getWorktrees()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        const worktrees = this.gitRepo.getWorktrees(cwd)
         const optsDelete = (opts.deleteBranch || opts.forceDeleteBranch) && { deleteBranch: true }
 
         if (opts.branch) {

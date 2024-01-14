@@ -5,7 +5,7 @@ import { Logger } from '../../lib/logger.service'
 import { cacheable, isSubDir } from '../../lib/utils'
 import { z } from 'zod'
 import { SysCallService } from '../../lib/sys-call.service'
-import { transformGitErrors } from './git.errors'
+import { NotAGitRepositoryException, transformGitErrors } from './git.errors'
 
 // Git Worktree List Output Format
 //
@@ -69,16 +69,17 @@ export class GitRepository {
     /** Do not use this constructor directly, use `.init()` instead */
     constructor(private sysCallService: SysCallService) {}
 
-    getWorktrees = cacheable((options?: { cwd?: string }): Worktree[] => {
+    getWorktrees = cacheable((directory: string): Worktree[] => {
         return transformGitErrors(
             () => {
                 const output = this.sysCallService.execPipe('git worktree list --porcelain', {
-                    cwd: options?.cwd,
+                    cwd: directory,
                     stdio: 'pipe',
                 })
                 const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
-                const repoRootDir = this.getRepoRootDir(options?.cwd)
-                const cwd = process.cwd()
+                const repoRootDir = this.getRepoRootDir(directory)
+                // @TODO: pass cwd as an option / get from context
+                const callerCwd = process.cwd()
 
                 const worktrees = worktreeTextBlocks.map<Worktree>(block => {
                     const directory = block.match(/(^worktree .+)/m)?.[0].replace('worktree ', '')
@@ -110,7 +111,7 @@ export class GitRepository {
                         isPrunable,
                         prunableReason,
                         isMainWorktree: repoRootDir == directory,
-                        isCurrent: cwd == directory || isSubDir(cwd, directory),
+                        isCurrent: callerCwd == directory || isSubDir(callerCwd, directory),
                     } satisfies Worktree
                 })
 
@@ -123,7 +124,9 @@ export class GitRepository {
     /** Adds a worktree with an existing branch */
     addWorktree(directory: string, branch: string): Worktree {
         transformGitErrors(() => {
-            const output = this.sysCallService.execPipe(`git worktree add ${directory} --checkout ${branch}`)
+            const output = this.sysCallService.execPipe(
+                `git worktree add '${directory}' --checkout '${branch}'`,
+            )
             // @TODO: this might need to be moved to the service or removed entirely
             Logger.verbose(output)
         })
@@ -154,19 +157,29 @@ export class GitRepository {
     })
 
     getCurrentWorktree() {
-        return this.getWorktrees().find(tree => tree.isCurrent)
+        return this.getWorktrees(process.cwd()).find(tree => tree.isCurrent)
     }
 
     getRepoRootDir = cacheable(
-        handleGitErrors({ fallbackValue: null }, (cwd: string = process.cwd()) => {
-            const gitDir = this.sysCallService.execPipe('git rev-parse --git-dir', { cwd, stdio: 'pipe' })
+        handleGitErrors({ fallbackValue: null }, (directory: string) => {
+            const gitDir = this.sysCallService.execPipe('git rev-parse --git-dir', {
+                cwd: directory,
+                stdio: 'pipe',
+            })
             const isAbsolute = path.isAbsolute(gitDir)
-            const joined = path.join(cwd, gitDir)
+            const joined = path.join(directory, gitDir)
             const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
 
             return resolved
         }),
     )
+
+    assertIsRepository(directory: string) {
+        if (!this.getRepoRootDir(directory)) {
+            Logger.error('Not in a git repository')
+            throw new NotAGitRepositoryException()
+        }
+    }
 
     getGitStatus = cacheable((directory?: string) => {
         return this.sysCallService.execPipe('git status --short', { cwd: directory })
@@ -188,36 +201,46 @@ export class GitRepository {
     // @TODO: remove logging
     /** `git branch <branchName>` */
     createBranch(branchName: string, message: string | null = `Creating branch ${branchName.green}...`.dim) {
-        if (message !== null) Logger.getInstance().log(message)
-        return this.sysCallService.execInherit(`git branch ${branchName}`)
+        return transformGitErrors(() => {
+            if (message !== null) Logger.getInstance().log(message)
+            return this.sysCallService.execInherit(`git branch ${branchName}`)
+        })
     }
 
     // @TODO: remove logging
     deleteBranch(branch: string, force = false) {
-        const output = this.sysCallService.execPipe(`git branch ${force ? '-D' : '-d'} ${branch}`)
-        const highlighted = output.replace(branch, match => match.yellow)
-        Logger.log(highlighted)
+        return transformGitErrors(() => {
+            const output = this.sysCallService.execPipe(`git branch ${force ? '-D' : '-d'} '${branch}'`)
+            const highlighted = output.replace(branch, match => match.yellow)
+            Logger.log(highlighted)
+        })
     }
 
     // @TODO: remove logging
     gitFetch(upstream?: string) {
-        Logger.log(`Fetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
-        this.sysCallService.execInherit(`git fetch ${upstream || ''}`)
+        return transformGitErrors(() => {
+            Logger.log(`Fetching${upstream ? ' from upstream ' + upstream.magenta : ''}...`)
+            this.sysCallService.execInherit(`git fetch ${upstream || ''}`)
+        })
     }
 
     // @TODO: remove logging
     gitPull(upstream?: string, workingDir?: string) {
         const upstreamText = upstream ? ' from ' + upstream.magenta : ''
-        try {
-            Logger.getInstance().verbose(`\nPulling${upstreamText}...`.dim)
-            this.sysCallService.execInherit(`git pull ${upstream || ''}`, { cwd: workingDir })
-        } catch {
-            Logger.getInstance().error(`Failed to pull${upstreamText}`.red)
-        }
+        return transformGitErrors(() => {
+            try {
+                Logger.getInstance().verbose(`\nPulling${upstreamText}...`.dim)
+                this.sysCallService.execInherit(`git pull ${upstream || ''}`, { cwd: workingDir })
+            } catch {
+                Logger.getInstance().error(`Failed to pull${upstreamText}`.red)
+            }
+        })
     }
 
     gitCheckout(branchName: string, workingDir?: string) {
-        return this.sysCallService.execPipe(`git checkout ${branchName}`, { cwd: workingDir })
+        return transformGitErrors(() => {
+            return this.sysCallService.execPipe(`git checkout ${branchName}`, { cwd: workingDir })
+        })
     }
 
     private static instance: GitRepository
