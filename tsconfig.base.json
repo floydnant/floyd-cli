@@ -16,7 +16,7 @@
         "alwaysStrict": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
-        "noPropertyAccessFromIndexSignature": true,
+        "noPropertyAccessFromIndexSignature": false,
         "skipLibCheck": true,
         "types": ["@total-typescript/ts-reset"],
         "paths": {

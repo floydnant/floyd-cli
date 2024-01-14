@@ -1,6 +1,7 @@
 import { ExecSyncOptions, execSync } from 'child_process'
 import { Logger } from './logger.service'
 import { cacheable } from './utils'
+import fs from 'fs/promises'
 
 export class SysCallService {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -68,6 +69,29 @@ export class SysCallService {
             return false
         }
     })
+
+    readTextFile = async (file: string) => {
+        Logger.debug(`Reading text file: ${file}`)
+        console.debug(`Reading text file: ${file}`)
+        return await fs.readFile(file, 'utf-8')
+    }
+    writeTextFile = async (file: string, content: string) => {
+        Logger.debug(`Writing text file: ${file}`)
+        return await fs.writeFile(file, content)
+    }
+    stat = async (file: string) => {
+        Logger.debug(`Getting file stats: ${file}`)
+        return await fs.stat(file)
+    }
+    exists = async (file: string) => {
+        return await this.stat(file)
+            .then(() => true)
+            .catch(() => false)
+    }
+    mkdir = async (directory: string) => {
+        Logger.debug(`Making directory: ${directory}`)
+        return await fs.mkdir(directory, { recursive: true })
+    }
 
     private static instance = new SysCallService()
     static getInstance() {

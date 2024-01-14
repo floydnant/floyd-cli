@@ -22,6 +22,7 @@ import { OpenController } from './lib/open/open.controller'
 import { OpenService } from './lib/open/open.service'
 import { PromptController } from './lib/prompt.controller'
 import { SysCallService } from './lib/sys-call.service'
+import { DEFAULT_LOG_LEVEL } from './lib/config/config.vars'
 
 const cli = new Command()
 
@@ -36,19 +37,23 @@ cli.addCommand(timeCommand)
 cli.addCommand(projectsCommand)
 
 cli.option('--debug', 'enable debug logging', false)
-cli.hook('preAction', thisCommand => {
+cli.hook('preAction', async thisCommand => {
+    const logLevel = thisCommand.opts()['debug'] ? LogLevel.DEBUG : DEFAULT_LOG_LEVEL
+    Logger.updateLogLevel(logLevel)
+    Logger.debug('Debug logging enabled')
+
     const sysCallService = SysCallService.getInstance()
+    const configService = ConfigService.init(sysCallService)
+    await configService.initConfig()
+    // If debug logging is not enabled, we update the log level to the one specified in the config
+    if (!thisCommand.opts()['debug']) Logger.updateLogLevel(configService.config.logLevel)
+
     const gitRepo = GitRepository.init(sysCallService)
     const promptController = PromptController.init()
     const gitService = GitService.init(gitRepo)
     GitController.init(gitRepo, gitService, promptController)
-    const configService = ConfigService.init()
     ContextService.init(gitRepo, configService)
     OpenController.init(OpenService.init(sysCallService, configService), configService)
-
-    const logLevel = thisCommand.opts()['debug'] ? LogLevel.DEBUG : configService.config.logLevel
-    Logger.updateLogLevel(logLevel)
-    Logger.debug('Debug logging enabled')
 })
 
 gracefullyHandle(() => cli.parseAsync(process.argv))

@@ -1,4 +1,4 @@
-import { interpolateVariablesWithAllStrategies } from '@flo/common'
+import { InterpolationStrategy, interpolateVariablesWithAllStrategies } from '@flo/common'
 import { GitRepository } from '../../adapters/git'
 import { Logger } from '../logger.service'
 import { cacheable } from '../utils'
@@ -44,11 +44,15 @@ export class ContextService {
         Object.assign(this.context, context)
     }
 
-    interpolateContextVars(contents: string) {
+    interpolateContextVars(contents: string, allowJavascript = true) {
         const result = interpolateVariablesWithAllStrategies(
             contents,
             this.context,
-            this.configService.config.interpolationStrategies,
+            allowJavascript
+                ? this.configService.config.interpolationStrategies
+                : this.configService.config.interpolationStrategies.filter(
+                      strategy => strategy != InterpolationStrategy.Javascript,
+                  ),
         )
 
         return result.interpolated

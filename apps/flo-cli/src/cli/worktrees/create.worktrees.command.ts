@@ -65,6 +65,7 @@ export const createWorktreeCommand = new Command()
                     PromptController.getInstance(),
                 ),
             )
+
             controller.createWorktree({ branch, ...opts })
         },
     )

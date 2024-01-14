@@ -37,6 +37,7 @@ const interpolationStrategies = {
     [InterpolationStrategy.HandleBars]: /(?<!\$){{\s*(?<identifier>(\w+(\.\w)?)+)\s*}}/g,
     [InterpolationStrategy.SingleHandleBars]: /(?<!{|\$){\s*(?<identifier>(\w+(\.\w)?)+)\s*}(?!})/g,
     [InterpolationStrategy.GithubStyle]: /\${{\s*(?<identifier>(\w+(\.\w)?)+)\s*}}/g,
+    // @TODO: javascript interpolation strategy is not properly working when invoked on the whole config file
     [InterpolationStrategy.Javascript]: /\${\s+(?<jsExpression>([^{]|(?<!\$){(?!{))+)\s+}(?!})/g,
     [InterpolationStrategy.ShellStyle]: /\$\(\s*(?<identifier>(\w+(\.\w)?)+)\s*\)/g,
 } satisfies Record<InterpolationStrategy, RegExp>
