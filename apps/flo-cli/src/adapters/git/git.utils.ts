@@ -62,9 +62,12 @@ export const assertGitHubInstalled = () => {
     const sysCallService = SysCallService.getInstance()
     if (sysCallService.testCommand('gh --version')) return
 
-    Logger.getInstance().error(
-        'Please install gh cli with `brew install gh` or go here: https://cli.github.com/manual/installation'
-            .red,
-    )
-    process.exit(1)
+    // @TODO: We can prompt wether we should directly install gh for the user
+    const isHomebrewInstalled = sysCallService.testCommand('brew --version')
+    const errorMessage = isHomebrewInstalled
+        ? 'Please install gh cli with `brew install gh`'
+        : 'Please install gh cli: https://cli.github.com/manual/installation'
+
+    // @TODO: this should be a custom exception
+    throw new Error(errorMessage)
 }
