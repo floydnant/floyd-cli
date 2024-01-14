@@ -3,7 +3,6 @@ import { fixBranchName } from './git.utils'
 import { Worktree } from './git.model'
 import { Logger } from '../../lib/logger.service'
 import { cacheable, isSubDir } from '../../lib/utils'
-import { z } from 'zod'
 import { SysCallService } from '../../lib/sys-call.service'
 import { NotAGitRepositoryException, transformGitErrors } from './git.errors'
 
@@ -41,29 +40,6 @@ import { NotAGitRepositoryException, transformGitErrors } from './git.errors'
 //     HEAD 1233def1234def1234def1234def1234def1234b
 //     detached
 //     prunable gitdir file points to non-existent location
-
-const errorWithMessageSchema = z.object({ message: z.string() })
-const handleGitErrors = <TArgs extends unknown[], TReturn, TFallback>(
-    options: { fallbackValue: TFallback },
-    callback: (...args: TArgs) => TReturn,
-) => {
-    return (...args: TArgs): TReturn | TFallback => {
-        try {
-            // @TODO: @floydnant lets see, not `await`ing here might be a problem
-            return callback(...args)
-        } catch (error) {
-            const result = errorWithMessageSchema.safeParse(error)
-            const hasMessage = result.success
-
-            if (hasMessage && result.data.message.includes('not a git repository'))
-                return options.fallbackValue
-
-            // console.log(error)
-            // process.exit(1)
-            throw error
-        }
-    }
-}
 
 export class GitRepository {
     /** Do not use this constructor directly, use `.init()` instead */
@@ -160,18 +136,21 @@ export class GitRepository {
         return this.getWorktrees(process.cwd()).find(tree => tree.isCurrent)
     }
 
-    getRepoRootDir = cacheable(
-        handleGitErrors({ fallbackValue: null }, (directory: string) => {
-            const gitDir = this.sysCallService.execPipe('git rev-parse --git-dir', {
-                cwd: directory,
-                stdio: 'pipe',
-            })
-            const isAbsolute = path.isAbsolute(gitDir)
-            const joined = path.join(directory, gitDir)
-            const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
+    getRepoRootDir = cacheable((directory: string) =>
+        transformGitErrors(
+            () => {
+                const gitDir = this.sysCallService.execPipe('git rev-parse --git-dir', {
+                    cwd: directory,
+                    stdio: 'pipe',
+                })
+                const isAbsolute = path.isAbsolute(gitDir)
+                const joined = path.join(directory, gitDir)
+                const resolved = (isAbsolute ? gitDir : joined).replace(/\/\.git.*/, '')
 
-            return resolved
-        }),
+                return resolved
+            },
+            { fallbackValue: null },
+        ),
     )
 
     assertIsRepository(directory: string) {
