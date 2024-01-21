@@ -12,6 +12,7 @@ import { WorkflowService } from '../../lib/workflows/workflow.service'
 import { PromptController } from '../../lib/prompt.controller'
 import { SysCallService } from '../../lib/sys-call.service'
 import { WorkflowController } from '../../lib/workflows/workflow.controller'
+import { GithubRepository } from '../../adapters/github'
 
 export const createWorktreeCommand = new Command()
     .createCommand('create')
@@ -64,6 +65,7 @@ export const createWorktreeCommand = new Command()
                     SysCallService.getInstance(),
                     PromptController.getInstance(),
                 ),
+                GithubRepository.init(SysCallService.getInstance()),
             )
 
             controller.createWorktree({ branch, ...opts })

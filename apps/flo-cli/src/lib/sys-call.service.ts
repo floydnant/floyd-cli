@@ -72,7 +72,6 @@ export class SysCallService {
 
     readTextFile = async (file: string) => {
         Logger.debug(`Reading text file: ${file}`)
-        console.debug(`Reading text file: ${file}`)
         return await fs.readFile(file, 'utf-8')
     }
     writeTextFile = async (file: string, content: string) => {

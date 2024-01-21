@@ -4,12 +4,6 @@ import { createCustomOpenPort } from './custom-open.service'
 import { OpenVscodeService } from './open-vscode.service'
 import { OpenPort, OpenServiceConstructor, OpenType } from './open.types'
 
-// @TODO: this needs to get its own file
-export interface InstalledCommandPort {
-    isInstalled(): boolean
-    assertInstalled(): void
-}
-
 const OpenDefaultService = createCustomOpenPort({
     name: 'default app',
     command: 'open {{ directory }}',

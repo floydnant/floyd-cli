@@ -2,6 +2,7 @@ import path from 'path'
 import { GitRepository, Worktree, assertGitHubInstalled, getNextWorktreeName } from '../../adapters/git'
 import { Logger } from '../logger.service'
 import { SysCallService } from '../sys-call.service'
+import { NotAGitRepositoryException } from '../../adapters/git/git.errors'
 
 export const setupWorktree = (opts: {
     worktreePrefix: boolean
@@ -19,8 +20,7 @@ export const setupWorktree = (opts: {
     const cwd = process.cwd()
     const repoRootDir = gitRepo.getRepoRootDir(cwd)
     if (!repoRootDir) {
-        Logger.error('Not in a git repository')
-        process.exit(1)
+        throw new NotAGitRepositoryException()
     }
     const repoFolderName = path.basename(repoRootDir)
 

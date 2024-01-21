@@ -1,24 +1,22 @@
 import { Command } from 'commander'
-import {
-    PullRequestWithChecks,
-    filterFailedChecks,
-    getOpenPullRequests,
-    getPullRequest,
-} from '../../adapters/github'
+import { GithubRepository, PullRequestWithChecks, filterFailedChecks } from '../../adapters/github'
+import { SysCallService } from '../../lib/sys-call.service'
 import { printChecks } from './lib/print-checks'
 import { rerunChecks } from './lib/rerun-checks'
-import { assertGitHubInstalled } from '../../adapters/git'
 
+// @TODO: migrate this to the controller pattern
 const checksHandler = (
     prNumberOrBranch: number | string | undefined,
     opts: { all?: boolean; failed?: boolean; rerun?: boolean },
 ) => {
-    assertGitHubInstalled()
+    const ghRepo = GithubRepository.init(SysCallService.getInstance())
+
+    ghRepo.assertInstalled()
 
     const getPrs = (): PullRequestWithChecks[] => {
         return !opts.all || prNumberOrBranch
-            ? [getPullRequest(prNumberOrBranch, { checks: true })]
-            : getOpenPullRequests({ checks: true })
+            ? [ghRepo.getPullRequest(prNumberOrBranch, { checks: true })]
+            : ghRepo.listOpenPullRequests({ checks: true })
     }
 
     const prs = opts.failed ? getPrs().map(filterFailedChecks) : getPrs()

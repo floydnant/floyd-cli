@@ -1,7 +1,7 @@
 import '@total-typescript/ts-reset'
 import path from 'path'
-import { GitRepository, assertGitHubInstalled } from '../../adapters/git'
-import { getOpenPullRequests, getPullRequest } from '../../adapters/github'
+import { GitRepository } from '../../adapters/git'
+import { GithubRepository } from '../../adapters/github'
 import { ContextService } from '../config/context.service'
 import { GitController } from '../git.controller'
 import { Logger } from '../logger.service'
@@ -21,6 +21,7 @@ export class CreateWorktreeController {
         private contextService: ContextService,
         private openController: OpenController,
         private workflowController: WorkflowController,
+        private ghRepo: GithubRepository,
     ) {}
 
     createWorktree = async (opts: {
@@ -45,17 +46,17 @@ export class CreateWorktreeController {
         let branch = typeof opts.upstreamBranch == 'string' ? opts.upstreamBranch : opts.branch
 
         pullRequestsScope: if (opts.pullRequest) {
-            assertGitHubInstalled()
+            this.ghRepo.assertInstalled()
 
             if (typeof opts.pullRequest == 'boolean') {
-                const pullRequest = await selectPullRequest(worktrees, getOpenPullRequests())
+                const pullRequest = await selectPullRequest(worktrees, this.ghRepo.listOpenPullRequests())
                 if (!pullRequest) process.exit(1)
 
                 branch = pullRequest.headRefName
                 break pullRequestsScope
             }
 
-            const pr = getPullRequest(opts.pullRequest)
+            const pr = this.ghRepo.getPullRequest(opts.pullRequest)
             branch = pr.headRefName
             Logger.verbose(`\nFound pull request ${('#' + pr.number).magenta} ${pr.title}`.dim)
         }
