@@ -19,3 +19,10 @@ export const reuseWindowOption = createOption(
     'Reuse existing window - if supported',
 ).default(false)
 export type ReuseWindowOptionArg = { reuseWindow: boolean }
+
+/** `-w,  --wait-for-close` */
+export const waitForCloseOption = createOption(
+    '-w, --wait-for-close',
+    'Wait for the app to close before continuing - if supported',
+).default(false)
+export type WaitForCloseOptionArg = { waitForClose: boolean }

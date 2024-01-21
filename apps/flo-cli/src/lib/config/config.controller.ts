@@ -4,6 +4,7 @@ import { OpenController } from '../open/open.controller'
 import { ConfigService } from './config.service'
 import { globalPaths } from './config.vars'
 import { ContextService } from './context.service'
+import { AppOptionArg, WaitForCloseOptionArg } from '../../cli/shared.options'
 
 export class ConfigController {
     /** Do not use this constructor directly, use `.init()` instead */
@@ -13,18 +14,22 @@ export class ConfigController {
         private openController: OpenController,
     ) {}
 
-    async editConfig() {
-        await this.openController.openFile(globalPaths.configFile, { subject: 'config file' })
+    async editConfig(options?: Partial<AppOptionArg & WaitForCloseOptionArg>) {
+        return await this.openController.openFile(globalPaths.configFile, {
+            subject: 'config file',
+            app: options?.app,
+            waitForClose: options?.waitForClose,
+        })
     }
     async printConfig() {
         const config = this.contextService.interpolateContextVars(this.configService.rawConfigFile, false)
-        console.log('With available variables:', this.contextService.context)
-        console.log()
-        console.log(
+        Logger.log('With available variables:', this.contextService.context)
+        Logger.log()
+        Logger.log(
             `Note: interpolation strategy ${InterpolationStrategy.Javascript} is not applied when using this command`,
         )
-        console.log()
-        console.log(globalPaths.configFile.yellow, config)
+        Logger.log()
+        Logger.log(globalPaths.configFile.yellow, config)
     }
 
     private static instance: ConfigController

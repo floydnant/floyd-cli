@@ -1,32 +1,50 @@
 import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenPort, OpenType } from './open.types'
+import { ReuseWindowOptionArg, WaitForCloseOptionArg } from '../../cli/shared.options'
+import { getFlags } from '../utils'
 
 export class OpenVscodeService implements OpenPort {
     constructor(private sysCallService: SysCallService) {}
 
     name = 'vscode'
-    get isReuseWindowSupported() {
+    supportedTypes = [OpenType.File, OpenType.Folder]
+    alwaysReusesWindow = false
+    alwaysWaitsForClose = false
+
+    get canReuseWindow() {
         return this.isCliInstalled()
     }
-    supportedTypes = [OpenType.File, OpenType.Folder]
+    reuseWindowSupportedTypes = [OpenType.Folder]
 
-    open(directory: string, options?: { reuseWindow?: boolean }) {
+    get canWaitForClose() {
+        return this.isCliInstalled()
+    }
+    waitForCloseSupportedTypes = [OpenType.File]
+
+    open(directory: string, options?: Partial<ReuseWindowOptionArg & WaitForCloseOptionArg>) {
         this.assertInstalled()
 
         try {
             if (this.isCliInstalled()) {
                 Logger.log(
-                    `Opening ${directory.green} in ${
-                        options?.reuseWindow ? 'same vscode window' : 'vscode'
+                    `Opening ${directory.green} in ${options?.reuseWindow ? 'same vscode window' : 'vscode'}${
+                        options?.waitForClose ? ' and waiting for it to be closed' : ''
                     }...`.dim,
                 )
+
                 this.sysCallService.execInherit(
-                    `code ${options?.reuseWindow ? '--reuse-window' : ''} ${directory}`,
+                    `code ${getFlags({
+                        '--reuse-window': options?.reuseWindow,
+                        '--wait': options?.waitForClose,
+                    })} ${directory}`,
                 )
             } else {
                 if (options?.reuseWindow)
                     Logger.warn('Reusing windows is not supported without the vscode CLI.')
+                if (options?.waitForClose)
+                    Logger.warn('Waiting for close is not supported without the vscode CLI.')
+
                 Logger.log(`Opening ${directory.green} in vscode...`.dim)
                 this.sysCallService.execInherit(`open -a ${this.appName} ${directory}`)
             }

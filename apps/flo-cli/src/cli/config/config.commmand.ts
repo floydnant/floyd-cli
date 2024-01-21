@@ -3,11 +3,14 @@ import { ConfigController } from '../../lib/config/config.controller'
 import { ConfigService } from '../../lib/config/config.service'
 import { ContextService } from '../../lib/config/context.service'
 import { OpenController } from '../../lib/open/open.controller'
+import { AppOptionArg, WaitForCloseOptionArg, appOption, waitForCloseOption } from '../shared.options'
 
 const editConfigCommand = new Command()
     .createCommand('edit')
+    .addOption(appOption)
+    .addOption(waitForCloseOption)
     .description('Opens the config file in your editor')
-    .action(async () => {
+    .action(async (options: AppOptionArg & WaitForCloseOptionArg) => {
         const configService = ConfigService.getInstance()
         const contextService = ContextService.getInstance()
         const configController = ConfigController.init(
@@ -16,7 +19,7 @@ const editConfigCommand = new Command()
             OpenController.getInstance(),
         )
 
-        await configController.editConfig()
+        await configController.editConfig(options)
     })
 
 export const configCommand = new Command()

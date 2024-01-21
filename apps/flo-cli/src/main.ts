@@ -53,7 +53,7 @@ cli.hook('preAction', async thisCommand => {
     const gitService = GitService.init(gitRepo)
     GitController.init(gitRepo, gitService, promptController)
     ContextService.init(gitRepo, configService)
-    OpenController.init(OpenService.init(sysCallService, configService), configService)
+    OpenController.init(OpenService.init(sysCallService, configService), configService, promptController)
 })
 
 gracefullyHandle(() => cli.parseAsync(process.argv))

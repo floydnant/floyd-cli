@@ -77,3 +77,35 @@ export const cacheable = <TArgs extends unknown[], TReturn>(callback: (...args: 
 
     return Object.assign(memoizedCallback, { resetCache })
 }
+
+export const escapeRegexChars = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * Fuzzy matches a list of strings against a query.
+ *
+ * @TODO Prioritization doesn't quite work with capital letters, i.e.
+ * when given a list of `['iTerm 2', 'terminal']` and a query of `'term'`
+ * it yields `['iTerm 2', 'terminal']` instead of `['terminal', 'iTerm 2']`.
+ *
+ * @param list
+ * @param query
+ * @param selector A function that returns the string to match against (if the list consists of strings only, this can simply be `String`)
+ * @returns The given list, filtered and sorted by how close the query matches the selector
+ */
+export const fuzzyMatch = <T>(list: T[], query: string, selector: (item: T) => string) => {
+    const regexInput = query.split(/(.)/g).map(escapeRegexChars).join('.*')
+    const regex = new RegExp(regexInput, 'i')
+
+    const filtered = list.filter(item => regex.test(selector(item)))
+    const prioritized = filtered.sort((a, b) => {
+        const aName = selector(a)
+        const bName = selector(b)
+        const aIndex = aName.indexOf(query)
+        const bIndex = bName.indexOf(query)
+
+        if (aIndex == bIndex) return aName.length - bName.length
+        return aIndex - bIndex
+    })
+
+    return prioritized
+}

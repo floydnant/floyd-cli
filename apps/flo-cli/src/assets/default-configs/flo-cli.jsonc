@@ -17,18 +17,21 @@
                 // Use url, directory or file to interpolate the path (it doesn't matter which one you use, they work exactly the same)
                 "command": "nvim {{ directory }}",
                 "checkInstalledCommand": "nvim --version",
-                "supportedTypes": ["file", "folder"]
+                "supportedTypes": ["file", "folder"],
+                "alwaysWaitsForClose": true
             },
             {
                 "name": "vim",
                 "command": "vim {{ directory }}",
                 "checkInstalledCommand": "vim --version",
-                "supportedTypes": ["file", "folder"]
+                "supportedTypes": ["file", "folder"],
+                "alwaysWaitsForClose": true
             },
             {
                 "name": "nano",
                 "command": "nano {{ file }}",
-                "supportedTypes": ["file"]
+                "supportedTypes": ["file"],
+                "alwaysWaitsForClose": true
             },
             {
                 "name": "iTerm",
@@ -51,13 +54,8 @@
                 "name": "Kitty (attached)",
                 "command": "kitty {{ directory }}",
                 "checkInstalledCommand": "kitty --version",
-                "supportedTypes": ["folder"]
-            },
-            {
-                "name": "vscode (wait for close)",
-                "command": "code {{ directory }} --wait",
-                "checkInstalledCommand": "code --version",
-                "supportedTypes": ["file"]
+                "supportedTypes": ["folder"],
+                "alwaysWaitsForClose": true
             }
         ]
     },
