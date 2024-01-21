@@ -9,9 +9,9 @@ import { ConfigService } from '../config/config.service'
 import { AppOptionArg, ReuseWindowOptionArg } from '../../cli/shared.options'
 
 const portPredicateMap: Record<OpenType, (port: OpenPort) => boolean> = {
-    file: port => port.isFilesSupported,
-    folder: port => port.isFoldersSupported,
-    url: port => port.isUrlsSupported,
+    file: port => port.supportedTypes.includes(OpenType.File),
+    folder: port => port.supportedTypes.includes(OpenType.Folder),
+    url: port => port.supportedTypes.includes(OpenType.Url),
 }
 
 export type OpenOptions = {

@@ -26,9 +26,9 @@ export class Logger {
         return Logger
     }).bind(Logger) as (message: string, ...agrs: unknown[]) => typeof Logger
 
-    static warn = ((...args: unknown[]) => {
+    static warn = ((message: string, ...args: unknown[]) => {
         if ([LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG, LogLevel.WARN].includes(Logger.logLevel))
-            console.warn(...args)
+            console.warn(message.yellow, ...args)
         return Logger
     }).bind(Logger) as (...agrs: unknown[]) => typeof Logger
 

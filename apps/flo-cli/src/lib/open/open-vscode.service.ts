@@ -1,6 +1,6 @@
 import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
-import { OpenPort } from './open.types'
+import { OpenPort, OpenType } from './open.types'
 
 export class OpenVscodeService implements OpenPort {
     constructor(private sysCallService: SysCallService) {}
@@ -9,9 +9,7 @@ export class OpenVscodeService implements OpenPort {
     get isReuseWindowSupported() {
         return this.isCliInstalled()
     }
-    isFilesSupported = true
-    isFoldersSupported = true
-    isUrlsSupported = false
+    supportedTypes = [OpenType.File, OpenType.Folder]
 
     open(directory: string, options?: { reuseWindow?: boolean }) {
         this.assertInstalled()
@@ -48,7 +46,6 @@ export class OpenVscodeService implements OpenPort {
     assertInstalled() {
         if (this.isInstalled()) return
 
-        Logger.error("Please install vscode and it's cli `code`".red)
-        process.exit(1)
+        throw new Error("Please install vscode and it's cli `code`")
     }
 }

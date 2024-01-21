@@ -3,7 +3,7 @@ import { ConfigService } from '../config/config.service'
 import { Logger } from '../logger.service'
 import { SysCallService } from '../sys-call.service'
 import { CustomOpenPortConfig } from './custom-open.schema'
-import { OpenPort, OpenType } from './open.types'
+import { OpenPort } from './open.types'
 
 export const createCustomOpenPort = (config: CustomOpenPortConfig) => {
     class CustomOpenPort implements OpenPort {
@@ -14,9 +14,7 @@ export const createCustomOpenPort = (config: CustomOpenPortConfig) => {
 
         name = config.name
         isReuseWindowSupported = !!config.reuseWindowCommand
-        isFilesSupported = config.supportedTypes.includes(OpenType.File)
-        isFoldersSupported = config.supportedTypes.includes(OpenType.Folder)
-        isUrlsSupported = config.supportedTypes.includes(OpenType.Url)
+        supportedTypes = config.supportedTypes
 
         open(url: string, options?: { reuseWindow?: boolean }) {
             this.assertInstalled()
