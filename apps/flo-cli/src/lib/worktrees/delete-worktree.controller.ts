@@ -27,9 +27,16 @@ export class DeleteWorktreeController {
 
         if (opts.branch) {
             const worktree = getWorktreeFromBranch(opts.branch, worktrees)
+            Logger.log()
+            Logger.log(
+                // @TODO: use basename highlighting here
+                `Found worktree ${worktree.directory.green} for branch ${(worktree.branch || worktree.head)
+                    ?.yellow}`.dim,
+            )
+            Logger.log()
+
             if (worktree.isMainWorktree) {
-                console.log(`Cannot remove the main worktree in ${worktree.directory}`.red)
-                process.exit(1)
+                throw new Error(`Cannot remove the main worktree in ${worktree.directory}`)
             }
 
             const { confirmed } = await prompts({

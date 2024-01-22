@@ -47,12 +47,12 @@ export const getBranchWorktreeString = (worktrees: Worktree[], branch: string | 
 }
 
 export const getWorktreeFromBranch = (branch: string, worktrees: Worktree[]) => {
-    const worktree = worktrees.find(tree => {
-        return tree.branch == branch || tree.branch == fixBranchName(branch)
-    })
+    const candidates = fuzzyMatch(worktrees, branch, wt => wt.branch || wt.head || '')
+    // @TODO: If there are multiple candidates, we should prompt to select the correct one
+    const worktree = candidates[0]
+
     if (!worktree) {
-        Logger.getInstance().warn(`No worktree found for branch ${branch}`.red)
-        process.exit(1)
+        throw new Error(`No worktree found for branch query '${branch.yellow}'`)
     }
 
     return worktree

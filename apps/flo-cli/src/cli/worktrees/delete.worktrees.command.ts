@@ -1,13 +1,13 @@
 import { Command } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
+import { ContextService } from '../../lib/config/context.service'
 import { GitController } from '../../lib/git.controller'
+import { ProjectsService } from '../../lib/projects/projects.service'
 import { SysCallService } from '../../lib/sys-call.service'
+import { WorkflowService } from '../../lib/workflows/workflow.service'
 import { DeleteWorktreeController } from '../../lib/worktrees/delete-worktree.controller'
 import { WorktreeService } from '../../lib/worktrees/worktree.service'
-import { ProjectsService } from '../../lib/projects/projects.service'
-import { WorkflowService } from '../../lib/workflows/workflow.service'
-import { ContextService } from '../../lib/config/context.service'
 
 export const deleteWorktreeCommand = new Command()
     .createCommand('delete')
@@ -18,7 +18,7 @@ export const deleteWorktreeCommand = new Command()
     .option('-d, --deleteBranch', 'delete the related branch')
     .option('-D, --forceDeleteBranch', 'force delete the related branch')
     .action(
-        (
+        async (
             branch: string | undefined,
             options: { force?: boolean; deleteBranch?: boolean; forceDeleteBranch?: boolean },
         ) => {
@@ -34,6 +34,6 @@ export const deleteWorktreeCommand = new Command()
                 SysCallService.getInstance(),
             )
 
-            controller.deleteWorktree({ branch, ...options })
+            await controller.deleteWorktree({ branch, ...options })
         },
     )

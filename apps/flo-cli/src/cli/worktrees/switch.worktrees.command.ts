@@ -11,7 +11,14 @@ import { WorkflowService } from '../../lib/workflows/workflow.service'
 import { WorkflowController } from '../../lib/workflows/workflow.controller'
 import { SysCallService } from '../../lib/sys-call.service'
 import { PromptController } from '../../lib/prompt.controller'
-import { AppOptionArg, ReuseWindowOptionArg, appOption, reuseWindowOption } from '../shared.options'
+import {
+    AppOptionArg,
+    ReuseWindowOptionArg,
+    WaitForCloseOptionArg,
+    appOption,
+    reuseWindowOption,
+    waitForCloseOption,
+} from '../shared.options'
 
 export const switchCommand = new Command()
     .createCommand('switch')
@@ -19,7 +26,7 @@ export const switchCommand = new Command()
     .description('Switch to another worktree')
     .argument('[branch]', 'the branch to switch the worktree to')
     .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo')
-    .action((branch, { subDir }: { subDir?: string }) => {
+    .action(async (branch, { subDir }: { subDir?: string }) => {
         const gitRepo = GitRepository.getInstance()
         const configService = ConfigService.getInstance()
         const contextService = ContextService.getInstance()
@@ -41,7 +48,7 @@ export const switchCommand = new Command()
             ),
         )
 
-        controller.openWorktree({ branch, subDir, reuseWindow: true })
+        await controller.openWorktree({ branch, subDir, reuseWindow: true })
     })
 
 export const openCommand = new Command()
@@ -52,27 +59,33 @@ export const openCommand = new Command()
     .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo')
     .addOption(appOption)
     .addOption(reuseWindowOption)
-    .action((branch, options: { subDir?: string } & ReuseWindowOptionArg & AppOptionArg) => {
-        const gitRepo = GitRepository.getInstance()
-        const configService = ConfigService.getInstance()
-        const contextService = ContextService.getInstance()
-        const controller = OpenWorktreeController.init(
-            WorktreeService.init(
+    .addOption(waitForCloseOption)
+    .action(
+        async (
+            branch,
+            options: { subDir?: string } & ReuseWindowOptionArg & AppOptionArg & WaitForCloseOptionArg,
+        ) => {
+            const gitRepo = GitRepository.getInstance()
+            const configService = ConfigService.getInstance()
+            const contextService = ContextService.getInstance()
+            const controller = OpenWorktreeController.init(
+                WorktreeService.init(
+                    gitRepo,
+                    ProjectsService.init(gitRepo, configService),
+                    WorkflowService.init(configService, contextService),
+                ),
                 gitRepo,
-                ProjectsService.init(gitRepo, configService),
-                WorkflowService.init(configService, contextService),
-            ),
-            gitRepo,
-            GitController.getInstance(),
-            ContextService.getInstance(),
-            OpenController.getInstance(),
-            WorkflowController.init(
-                WorkflowService.getInstance(),
+                GitController.getInstance(),
                 ContextService.getInstance(),
-                SysCallService.getInstance(),
-                PromptController.getInstance(),
-            ),
-        )
+                OpenController.getInstance(),
+                WorkflowController.init(
+                    WorkflowService.getInstance(),
+                    ContextService.getInstance(),
+                    SysCallService.getInstance(),
+                    PromptController.getInstance(),
+                ),
+            )
 
-        controller.openWorktree({ branch, ...options })
-    })
+            await controller.openWorktree({ branch, ...options })
+        },
+    )

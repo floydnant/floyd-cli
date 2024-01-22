@@ -1,5 +1,3 @@
-import path from 'path'
-import { Worktree, getNextWorktreeName } from '../adapters/git'
 import { GitRepository } from '../adapters/git/git.repo'
 import { Logger } from './logger.service'
 
