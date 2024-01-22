@@ -1,8 +1,9 @@
 import path from 'path'
-import { GitRepository, Worktree, assertGitHubInstalled, getNextWorktreeName } from '../../adapters/git'
+import { GitRepository, Worktree, getNextWorktreeName } from '../../adapters/git'
+import { NotAGitRepositoryException } from '../../adapters/git/git.errors'
 import { Logger } from '../logger.service'
 import { SysCallService } from '../sys-call.service'
-import { NotAGitRepositoryException } from '../../adapters/git/git.errors'
+import { GithubRepository } from '../../adapters/github'
 
 export const setupWorktree = (opts: {
     worktreePrefix: boolean
@@ -15,6 +16,7 @@ export const setupWorktree = (opts: {
 }): Worktree => {
     const gitRepo = GitRepository.getInstance()
     const sysCallService = SysCallService.getInstance()
+    const ghRepo = GithubRepository.getInstance()
 
     // @TODO: pass cwd as an option / get from context
     const cwd = process.cwd()
@@ -37,7 +39,7 @@ export const setupWorktree = (opts: {
     const worktreePath =
         opts.directory || path.join(repoRootDir, '../', repoFolderName + '.worktrees/', worktreeName)
 
-    Logger.getInstance().log(`\nCreating worktree in ${worktreePath.yellow}...`.dim)
+    Logger.log(`\nCreating worktree in ${worktreePath.yellow}...`.dim)
     // @TODO: this must be a gitRepo operation
     sysCallService.execInherit(`git worktree add ${worktreePath} --quiet`)
 
@@ -49,10 +51,9 @@ export const setupWorktree = (opts: {
 
         gitRepo.deleteBranch(worktreeName)
     } else if (opts.pullRequestToCheckout && opts.pullRequestToCheckout != worktreeBranch) {
-        assertGitHubInstalled()
+        ghRepo.assertInstalled()
+        ghRepo.checkout(opts.pullRequestToCheckout, worktreePath)
 
-        // @TODO: this must be a githubRepo operation
-        sysCallService.execInherit(`gh pr checkout ${opts.pullRequestToCheckout}`, { cwd: worktreePath })
         worktreeBranch = gitRepo.getCurrentBranch(worktreePath)
 
         gitRepo.deleteBranch(worktreeName)

@@ -123,6 +123,10 @@ export class GithubRepository implements Installed {
         }
     }
 
+    checkout(branchOrPr: string, directory: string) {
+        this.sysCallService.execInherit(`gh pr checkout ${branchOrPr}`, { cwd: directory })
+    }
+
     private static instance: GithubRepository
     static init(...args: ConstructorParameters<typeof GithubRepository>) {
         if (this.instance) {

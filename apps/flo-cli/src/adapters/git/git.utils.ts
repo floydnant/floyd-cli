@@ -1,6 +1,4 @@
-import { SysCallService } from '../../lib/sys-call.service'
-import { Logger } from '../../lib/logger.service'
-import { getRelativePathOf } from '../../lib/utils'
+import { fuzzyMatch, getRelativePathOf } from '../../lib/utils'
 import { Worktree } from './git.model'
 
 export const fixBranchName = (branch: string) =>
@@ -56,18 +54,4 @@ export const getWorktreeFromBranch = (branch: string, worktrees: Worktree[]) => 
     }
 
     return worktree
-}
-
-export const assertGitHubInstalled = () => {
-    const sysCallService = SysCallService.getInstance()
-    if (sysCallService.testCommand('gh --version')) return
-
-    // @TODO: We can prompt wether we should directly install gh for the user
-    const isHomebrewInstalled = sysCallService.testCommand('brew --version')
-    const errorMessage = isHomebrewInstalled
-        ? 'Please install gh cli with `brew install gh`'
-        : 'Please install gh cli: https://cli.github.com/manual/installation'
-
-    // @TODO: this should be a custom exception
-    throw new Error(errorMessage)
 }
