@@ -1,9 +1,10 @@
 import { matchError } from './errors.utils'
+import { fnTestName } from './testing.utils'
 
 // @TODO: write proper tests for this
 
 describe('git errors', () => {
-    describe(`${matchError}()`, () => {
+    describe(fnTestName(matchError), () => {
         it('should match the error', () => {
             const error = `Error: some error occured
             error: pathspec 'non-existent' did not match any file(s) known to git`

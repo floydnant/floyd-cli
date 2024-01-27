@@ -25,7 +25,7 @@ export class ConfigController {
         const config = this.contextService.interpolateContextVars(this.configService.rawConfigFile, false)
         Logger.log('With available variables:', this.contextService.context)
         Logger.log()
-        Logger.log(
+        Logger.warn(
             `Note: interpolation strategy ${InterpolationStrategy.Javascript} is not applied when using this command`,
         )
         Logger.log()
