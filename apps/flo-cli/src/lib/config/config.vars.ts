@@ -1,13 +1,13 @@
 import path from 'path'
-import { LogLevel } from '../logger.service'
+import os from 'os'
+import { LogLevel } from '../logger.types'
 
 export const DEFAULT_LOG_LEVEL = LogLevel.VERBOSE
 
 export const configFolderName = '.flo-cli'
 export const configFileName = 'flo-cli.jsonc'
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const home = process.env['HOME']!
+const home = os.homedir()
 
 const globalConfigRoot = path.join(home, '.config', configFolderName)
 const globalConfigFile = path.join(globalConfigRoot, configFileName)

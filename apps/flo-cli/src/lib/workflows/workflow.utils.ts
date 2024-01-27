@@ -1,5 +1,4 @@
 import prompts from 'prompts'
-// eslint-disable-next-line @nx/enforce-module-boundaries
 import {
     CommandStep,
     FileCopyStep,

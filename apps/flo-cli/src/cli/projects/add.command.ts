@@ -6,13 +6,16 @@ import { Logger } from '../../lib/logger.service'
 import { ProjectsService } from '../../lib/projects/projects.service'
 import { indent } from '../../lib/utils'
 
+// @TODO: update this to the controller pattern
+
 export const addCommand = new Command()
     .createCommand('add')
     .description('Add project')
     .argument('[path]', 'Path to the project', '<cwd>')
     .action((options: { path?: string }) => {
         const configService = ConfigService.getInstance()
-        const projectsService = ProjectsService.init(GitRepository.getInstance())
+        const gitRepo = GitRepository.getInstance()
+        const projectsService = ProjectsService.init(gitRepo, configService)
 
         const { projectId, root } = projectsService.getProject(options.path)
         Logger.log("As of right now, we can't update your config automatically.")

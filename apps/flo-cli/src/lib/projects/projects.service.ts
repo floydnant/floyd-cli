@@ -1,24 +1,31 @@
 import path from 'path'
 import { GitRepository, getWorktreeDisplayStr } from '../../adapters/git'
-import { ProjectConfig } from '../config/config.schemas'
+import { PROJECTS_CONFIG_KEY, ProjectConfig } from '../config/config.schemas'
 import { Logger } from '../logger.service'
 import { getPaddedStr, indent } from '../utils'
 import { getProjectDisplayStr } from './project.utils'
 import { Project } from './projects.schemas'
+import { ConfigService } from '../config/config.service'
 
 export class ProjectsService {
     /** Do not use this constructor directly, use `ProjectsService.init()` instead */
-    constructor(private gitRepo: GitRepository) {}
+    constructor(
+        private gitRepo: GitRepository,
+        private configService: ConfigService,
+    ) {}
 
     getProject(cwd = process.cwd()) {
         const root = this.gitRepo.getRepoRootDir(cwd) || cwd
         const projectId = path.basename(root)
+        const config = this.configService.config[PROJECTS_CONFIG_KEY]?.[projectId]
 
-        return { projectId, root }
+        return { projectId, root, config }
     }
 
     printProjects(projects: Record<string, ProjectConfig>) {
-        const repoRoot = this.gitRepo.getRepoRootDir()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        const repoRoot = this.gitRepo.getRepoRootDir(cwd)
 
         for (const projectId in projects) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -30,7 +37,7 @@ export class ProjectsService {
                 { projectId, projectConfig: projects[projectId]!, isCurrent },
                 true,
             )
-            const worktrees = this.gitRepo.getWorktrees({ cwd: projectRoot })
+            const worktrees = this.gitRepo.getWorktrees(projectRoot)
             const worktreeNames = worktrees
                 .map(
                     tree =>
@@ -47,17 +54,23 @@ export class ProjectsService {
     }
 
     resolveProjectMap(projectMap: Record<string, ProjectConfig>): Project[] {
-        const repoRoot = this.gitRepo.getRepoRootDir()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        const repoRoot = this.gitRepo.getRepoRootDir(cwd)
 
         const projects = Object.entries(projectMap).map(([projectId, projectConfig]) => {
             const isCurrent = projectConfig.root === repoRoot
-            const worktrees = this.gitRepo.getWorktrees({ cwd: projectConfig.root })
+            const getWorktrees = () => this.gitRepo.getWorktrees(projectConfig.root)
 
             return {
                 projectId,
                 projectConfig,
                 isCurrent,
-                worktrees,
+                get worktrees() {
+                    // this operation is expensive, so we only do it when needed
+                    // + `getWorktrees` is memoized, so it won't be expensive the second time we need it
+                    return getWorktrees()
+                },
             } satisfies Project
         })
 

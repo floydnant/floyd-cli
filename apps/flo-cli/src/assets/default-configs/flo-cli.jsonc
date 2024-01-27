@@ -1,6 +1,73 @@
 {
+    // Yes, you can use comments in here
     "version": "$cliVersion",
     "loglevel": "$defaultLogLevel",
+    // Available interpolation strategies include: $interpolationStrategies
+    "interpolationStrategies": ["handleBars", "dollarSign", "javascript"], // Fun fact: the javascript strategy allows you to ACTUALLY evaluate js expressions
+    "openIn": {
+        // Use these defaults to stop getting asked which app to use each time
+        "defaults": {
+            // "folder": "vscode",
+            // "file": "vscode",
+            // "url": "default app",
+        },
+        "apps": [
+            {
+                "name": "neovim",
+                // Use url, directory or file to interpolate the path (it doesn't matter which one you use, they work exactly the same)
+                "command": "nvim {{ directory }}",
+                "checkInstalledCommand": "nvim --version",
+                "supportedTypes": ["file", "folder"],
+                "alwaysWaitsForClose": true
+            },
+            {
+                "name": "vim",
+                "command": "vim {{ directory }}",
+                "checkInstalledCommand": "vim --version",
+                "supportedTypes": ["file", "folder"],
+                "alwaysWaitsForClose": true
+            },
+            {
+                "name": "nano",
+                "command": "nano {{ file }}",
+                "supportedTypes": ["file"],
+                "alwaysWaitsForClose": true
+            },
+            {
+                "name": "iTerm",
+                "command": "open -a iterm.app {{ directory }}",
+                "checkInstalledApp": "iTerm.app",
+                "supportedTypes": ["folder"]
+            },
+            {
+                "name": "terminal",
+                "command": "open -a terminal.app {{ directory }}",
+                "supportedTypes": ["folder"]
+            },
+            {
+                "name": "Kitty",
+                "command": "open -a kitty.app {{ directory }}",
+                "checkInstalledApp": "kitty.app",
+                "supportedTypes": ["folder"]
+            },
+            {
+                "name": "Kitty (attached)",
+                "command": "kitty {{ directory }}",
+                "checkInstalledCommand": "kitty --version",
+                "supportedTypes": ["folder"],
+                "alwaysWaitsForClose": true
+            }
+        ]
+    },
+    "projects": {
+        "floyd-cli": {
+            "root": "{{ cliRoot }}",
+            "worktreeHooks": {
+                "onCreate": "floyd-cli:prepare-worktree",
+                "onCheckout": "floyd-cli:update-worktree"
+            }
+        }
+    },
     "workflows": [
         {
             "name": "Welcome workflow",
@@ -10,35 +77,33 @@
             "steps": [
                 {
                     "name": "Greet user",
-                    "command": "echo 'Hey, how you doin? Got some example output right there!'",
-                    "cwd": "$repoRoot"
+                    "command": "echo 'Hey, how you doin? Got some example output right there!'"
                 }
             ]
         },
         {
-            // Yes, you can use comments here. Also, please don't mess with this workflow,
-            // otherwise you can't install updates anymore (it's actually your own problem, but I'm trying to help you).
+            // Please don't mess with this workflow, otherwise you can't install updates anymore
             "name": "Update floyd-cli",
             "workflowId": "update",
             "description": "Pulls changes and rebuilds flo-cli",
             "steps": [
                 {
                     "name": "Pull latest changes",
-                    "cwd": "$cliRoot",
-                    "command": "git pull --rebase"
+                    "cwd": "{{ cliRoot }}",
+                    "command": "git pull --rebase --autostash"
                 },
                 {
                     "name": "Install dependencies",
-                    "cwd": "$cliRoot",
-                    "command": "npm i"
+                    "cwd": "{{ cliRoot }}",
+                    "command": "npm ci"
                 },
                 {
                     "name": "Rebuild floyd-cli",
-                    "cwd": "$cliRoot",
+                    "cwd": "{{ cliRoot }}",
                     "command": "npm run build"
                 },
                 {
-                    "workflowId": "welcome"
+                    "command": "echo 'Flo-cli has been updated to version {{ cliVersion }}'"
                 }
             ]
         },
@@ -84,27 +149,32 @@
         },
         {
             "name": "Setup floyd-cli worktree",
-            "workflowId": "prepare-floyd-cli-worktree",
+            "workflowId": "floyd-cli:prepare-worktree",
             "steps": [
                 {
                     "name": "Copy environment variables",
-                    "copyFrom": "$repoRoot/.env",
-                    "to": "$newWorktreeRoot/.env"
+                    "copyFrom": "{{ repoRoot }}/.env",
+                    "to": "{{ newWorktreeRoot }}/.env"
+                },
+                {
+                    "name": "Copy node_modules",
+                    "command": "cp -R {{ repoRoot }}/node_modules {{ newWorktreeRoot }}/node_modules"
                 },
                 {
                     "command": "npm i",
-                    "cwd": "$newWorktreeRoot"
+                    "cwd": "{{ newWorktreeRoot }}"
+                }
+            ]
+        },
+        {
+            "name": "Update floyd-cli worktree (on checkout)",
+            "workflowId": "floyd-cli:update-worktree",
+            "steps": [
+                {
+                    "command": "npm i",
+                    "cwd": "{{ newWorktreeRoot }}"
                 }
             ]
         }
-    ],
-    "projects": {
-        "floyd-cli": {
-            "root": "$cliRoot",
-            "worktreeHooks": {
-                "onCreate": "prepare-floyd-cli-worktree",
-                "onSwitch": "welcome"
-            }
-        }
-    }
+    ]
 }

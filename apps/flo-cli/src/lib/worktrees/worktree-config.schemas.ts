@@ -2,10 +2,9 @@ import { z } from 'zod'
 
 export enum WorktreeHook {
     OnCreate = 'onCreate',
-    OnSwitch = 'onSwitch',
-    // OnOpen = 'onOpen',
-    // OnBeforeDelete = 'onBeforeDelete',
-    // OnRename = 'onRename',
+    OnCheckout = 'onCheckout',
+    BeforeOpen = 'beforeOpen',
+    // BeforeDelete = 'beforeDelete',
     // OnMove = 'onMove',
 }
 

@@ -9,8 +9,8 @@
     "scripts": {
         "build": "nx build flo-cli",
         "dev": "nx build flo-cli --watch",
-        "build:all": "nx run-many --target=build --exclude=floyd-cli-root",
-        "test:all": "nx run-many --target=test",
+        "build:all": "nx run-many --target=build",
+        "test:all": "nx run-many --target=test,e2e",
         "lint:all": "nx run-many --target=lint --verbose"
     },
     "author": "Floyd Haremsa",
@@ -56,13 +56,8 @@
         "vite-tsconfig-paths": "~4.2.0",
         "vitest": "~0.33.0"
     },
-    "nx": {
-        "targets": {
-            "build": {
-                "outputs": [
-                    "{projectRoot}/bin"
-                ]
-            }
-        }
-    }
+    "workspaces": [
+        "packages/*",
+        "apps/*"
+    ]
 }

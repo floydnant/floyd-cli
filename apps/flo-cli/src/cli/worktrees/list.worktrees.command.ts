@@ -1,27 +1,27 @@
 import { Command } from 'commander'
-import { getGitStatus, getCommitLogs, getWorktreeDisplayStr, getWorktrees } from '../../adapters/git'
-import { getPaddedStr, indent } from '../../lib/utils'
-
-const listWorktrees = (opts: { logs?: boolean | string }) => {
-    const worktrees = getWorktrees()
-        .map(tree => {
-            const worktreeStr = getWorktreeDisplayStr(tree)
-
-            const status = getGitStatus(tree.directory)
-            const statusDisplay = !status ? ' Clean'.dim : status
-
-            const logLimit = isNaN(parseInt(opts.logs as string)) ? 5 : (opts.logs as unknown as number)
-            const commits = opts.logs ? '\n\n' + getCommitLogs(tree.directory, logLimit) : ''
-
-            return `${getPaddedStr(worktreeStr)}\n${indent(statusDisplay, 3)}${indent(commits)}`
-        })
-        .join('\n\n')
-    console.log('\n' + worktrees + '\n')
-}
+import { GitRepository } from '../../adapters/git'
+import { ConfigService } from '../../lib/config/config.service'
+import { ListWorktreeController } from '../../lib/worktrees/list-worktree.controller'
+import { WorktreeService } from '../../lib/worktrees/worktree.service'
+import { ProjectsService } from '../../lib/projects/projects.service'
+import { WorkflowService } from '../../lib/workflows/workflow.service'
+import { ContextService } from '../../lib/config/context.service'
 
 export const listWorktreesCommand = new Command()
     .createCommand('list')
     .alias('ls')
     .description('List worktrees')
     .option('-l, --logs [number]', 'Show recent commit logs')
-    .action(listWorktrees)
+    .action(async (opts: { logs?: boolean | string }) => {
+        const gitRepo = GitRepository.getInstance()
+        const configService = ConfigService.getInstance()
+        const projectsService = ProjectsService.init(gitRepo, configService)
+        const contextService = ContextService.getInstance()
+        const workflowService = WorkflowService.init(configService, contextService)
+        const controller = ListWorktreeController.init(
+            WorktreeService.init(gitRepo, projectsService, workflowService),
+            gitRepo,
+        )
+
+        await controller.listWorktrees(opts)
+    })

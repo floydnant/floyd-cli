@@ -6,6 +6,7 @@
         "importsNotUsedAsValues": "remove",
         "esModuleInterop": true,
         "baseUrl": "./",
+        "rootDir": "./",
         "forceConsistentCasingInFileNames": true,
         "strict": true,
         "noImplicitAny": true,
@@ -15,8 +16,9 @@
         "alwaysStrict": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
-        "noPropertyAccessFromIndexSignature": true,
+        "noPropertyAccessFromIndexSignature": false,
         "skipLibCheck": true,
+        "types": ["@total-typescript/ts-reset"],
         "paths": {
             "@flo/common": ["packages/common/src/index.ts"],
             "@flo/time-tracking": ["packages/time-tracking/src/index.ts"]

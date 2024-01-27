@@ -1,5 +1,7 @@
 {
   "name": "@flo/common",
   "version": "0.1.0",
-  "type": "commonjs"
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts"
 }

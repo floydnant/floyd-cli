@@ -1,7 +1,5 @@
-import { Logger } from '../../lib/logger.service'
-import { getRelativePathOf } from '../../lib/utils'
+import { fuzzyMatch, getRelativePathOf } from '../../lib/utils'
 import { Worktree } from './git.model'
-import { GitRepository } from './git.repo'
 
 export const fixBranchName = (branch: string) =>
     branch.replace('refs/', '').replace('heads/', '').replace('remotes/', '').replace('origin/', '')
@@ -25,6 +23,7 @@ export const getWorktreeDisplayStr = (tree: Worktree, isDirty?: boolean) => {
     return `${checkedOut} ${info ? `(${info}) ` : ''}${tree.directory.dim}`
 }
 
+/** Returns a folder name with incremented index (starting at 1) */
 export const getNextWorktreeName = (worktrees: Worktree[]) => {
     const worktreesIndicies = worktrees
         .map(worktree => /worktree-\d+/.exec(worktree.directory)?.[0]?.match(/\d+/)?.[0])
@@ -45,16 +44,13 @@ export const getBranchWorktreeString = (worktrees: Worktree[], branch: string | 
     return ` ${'(checked out'.red} ${pathToWorkTree}${')'.red}`
 }
 
-export const getWorktreeFromBranch = (
-    branch: string,
-    worktrees = GitRepository.getInstance().getWorktrees(),
-) => {
-    const worktree = worktrees.find(tree => {
-        return tree.branch == branch || tree.branch == fixBranchName(branch)
-    })
+export const getWorktreeFromBranch = (branch: string, worktrees: Worktree[]) => {
+    const candidates = fuzzyMatch(worktrees, branch, wt => wt.branch || wt.head || '')
+    // @TODO: If there are multiple candidates, we should prompt to select the correct one
+    const worktree = candidates[0]
+
     if (!worktree) {
-        Logger.getInstance().warn(`No worktree found for branch ${branch}`.red)
-        process.exit(1)
+        throw new Error(`No worktree found for branch query '${branch.yellow}'`)
     }
 
     return worktree

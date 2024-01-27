@@ -1,8 +1,8 @@
 import { Command } from 'commander'
-import { openCommand, switchCommand } from './switch.worktrees.command'
 import { createWorktreeCommand } from './create.worktrees.command'
 import { deleteWorktreeCommand } from './delete.worktrees.command'
 import { listWorktreesCommand } from './list.worktrees.command'
+import { openCommand, switchCommand } from './switch.worktrees.command'
 
 // @TODO: Add a command to rename a worktree
 
