@@ -34,7 +34,7 @@ export const createWorktreeCommand = new Command()
     .option('--pr, --pull-request [number]', 'create a worktree from a pull request')
     .option('-S, --sub-dir <path>', 'switch directly into a subdirectory of the repo when opening vscode')
     .action(
-        (
+        async (
             branch: string | undefined,
             opts: {
                 upstreamBranch?: boolean | string
@@ -68,6 +68,6 @@ export const createWorktreeCommand = new Command()
                 GithubRepository.init(SysCallService.getInstance()),
             )
 
-            controller.createWorktree({ branch, ...opts })
+            await controller.createWorktree({ branch, ...opts })
         },
     )

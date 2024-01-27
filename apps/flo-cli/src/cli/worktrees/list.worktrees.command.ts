@@ -12,7 +12,7 @@ export const listWorktreesCommand = new Command()
     .alias('ls')
     .description('List worktrees')
     .option('-l, --logs [number]', 'Show recent commit logs')
-    .action((opts: { logs?: boolean | string }) => {
+    .action(async (opts: { logs?: boolean | string }) => {
         const gitRepo = GitRepository.getInstance()
         const configService = ConfigService.getInstance()
         const projectsService = ProjectsService.init(gitRepo, configService)
@@ -23,5 +23,5 @@ export const listWorktreesCommand = new Command()
             gitRepo,
         )
 
-        return controller.listWorktrees(opts)
+        await controller.listWorktrees(opts)
     })
