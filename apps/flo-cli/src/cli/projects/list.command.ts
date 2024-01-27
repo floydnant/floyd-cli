@@ -4,6 +4,8 @@ import { ConfigService } from '../../lib/config/config.service'
 import { Logger } from '../../lib/logger.service'
 import { ProjectsService } from '../../lib/projects/projects.service'
 
+// @TODO: update this to the controller pattern
+
 export const listCommand = new Command()
     .createCommand('list')
     .alias('ls')

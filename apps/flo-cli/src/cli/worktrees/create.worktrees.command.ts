@@ -28,11 +28,11 @@ export const createWorktreeCommand = new Command()
         `--dir, --directory <path>`,
         'create the worktree in a custom directory (will take precedence over --use-branch)',
     )
-    .option(`-S, --skip-hooks`, 'skip running workflow hooks', false)
+    .option(`-s, --skip-hooks`, 'skip running workflow hooks', false)
     .option(`--ub, --use-branch`, 'use branch name as directory for the worktree', false)
     .option('-r, --remote <remote>', 'which remote to fetch from')
     .option('--pr, --pull-request [number]', 'create a worktree from a pull request')
-    .option('-s, --sub-dir <path>', 'switch directly into a subdirectory of the repo when opening vscode')
+    .option('-S, --sub-dir <path>', 'switch directly into a subdirectory of the repo when opening vscode')
     .action(
         (
             branch: string | undefined,

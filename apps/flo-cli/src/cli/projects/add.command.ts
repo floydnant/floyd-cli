@@ -6,6 +6,8 @@ import { Logger } from '../../lib/logger.service'
 import { ProjectsService } from '../../lib/projects/projects.service'
 import { indent } from '../../lib/utils'
 
+// @TODO: update this to the controller pattern
+
 export const addCommand = new Command()
     .createCommand('add')
     .description('Add project')

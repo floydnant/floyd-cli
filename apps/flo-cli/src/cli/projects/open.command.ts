@@ -8,6 +8,8 @@ import { selectProject } from '../../lib/projects/project.utils'
 import { ProjectsService } from '../../lib/projects/projects.service'
 import { AppOptionArg, ReuseWindowOptionArg, appOption, reuseWindowOption } from '../shared.options'
 
+// @TODO: update this to the controller pattern
+
 export const openCommand = createCommand('open')
     .description('Open project')
     .alias('o')

@@ -1,7 +1,9 @@
 import { GitExceptionCode, matchGitError } from './git.errors'
 
+// @TODO: write proper tests for this
+
 describe('git errors', () => {
-    describe('matchGitError', () => {
+    describe(`${matchGitError}()`, () => {
         const map = {
             [GitExceptionCode.PATHSPEC_DID_NOT_MATCH_ANY_FILES]: `Error: some error occured
             error: pathspec 'non-existent' did not match any file(s) known to git`,

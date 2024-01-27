@@ -54,7 +54,6 @@ export class GitRepository {
                 })
                 const worktreeTextBlocks = output.split('\n\n').filter(Boolean)
                 const repoRootDir = this.getRepoRootDir(directory)
-                // @TODO: pass cwd as an option / get from context
                 const callerCwd = process.cwd()
 
                 const worktrees = worktreeTextBlocks.map<Worktree>(block => {
@@ -73,8 +72,7 @@ export class GitRepository {
 
                     // this should never happen, because a worktree always has a directory
                     if (!directory) {
-                        Logger.error(`Couldn't match a directory in:\n${block}`.red)
-                        process.exit(1)
+                        throw new Error(`Couldn't match a directory in:\n${block}`)
                     }
                     return {
                         directory,
