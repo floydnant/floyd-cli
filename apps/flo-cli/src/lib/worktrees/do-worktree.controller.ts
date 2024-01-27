@@ -1,5 +1,5 @@
 import { GitRepository, fixBranchName } from '../../adapters/git'
-import { getPullRequest } from '../../adapters/github'
+import { GithubRepository } from '../../adapters/github'
 import { AppOptionArg, ReuseWindowOptionArg, SkipHooksOptionArg } from '../../cli/shared.options'
 import { GitController } from '../git.controller'
 import { GitService } from '../git.service'
@@ -24,6 +24,7 @@ export class DoWorkorktreeController {
         private gitService: GitService,
         private gitController: GitController,
         private promptController: PromptController,
+        private ghRepo: GithubRepository,
     ) {}
 
     async do(
@@ -37,6 +38,9 @@ export class DoWorkorktreeController {
 
             return
         }
+
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
 
         const input = options.input.replace(/#(?=\d+)/, '') // remove '#' from '#123'
         let branch = input
@@ -58,14 +62,14 @@ export class DoWorkorktreeController {
             Logger.log(`Looking for pull request...`)
 
             // @TODO: we need some proper error handling around this
-            const pr = getPullRequest(input)
+            const pr = this.ghRepo.getPullRequest(input)
             Logger.log(`Found ${('#' + pr.number).magenta} ${pr.title}`)
 
             branch = pr.headRefName
         }
 
         const localBranches = this.gitRepo.getBranches()
-        const worktrees = this.gitRepo.getWorktrees()
+        const worktrees = this.gitRepo.getWorktrees(cwd)
 
         // check if branch exists locally
         if (localBranches.includes(branch)) {

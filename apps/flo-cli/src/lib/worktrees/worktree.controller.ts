@@ -1,3 +1,4 @@
+import prompts from 'prompts'
 import { GitRepository, Worktree } from '../../adapters/git'
 import { GitExceptionCode, matchGitError } from '../../adapters/git/git.errors'
 import { GitService } from '../git.service'
@@ -6,6 +7,7 @@ import { PromptController } from '../prompt.controller'
 import { getRelativePathOf } from '../utils'
 import { WorkflowController } from '../workflows/workflow.controller'
 import { WorktreeService } from './worktree.service'
+import { getWorktreeHeaders } from '../worktree.formatting'
 
 export type ChooseOrCreateWorktreeResult = {
     worktree: Worktree
@@ -29,8 +31,11 @@ export class WorktreeController {
     ): Promise<ChooseOrCreateWorktreeResult | null> {
         const allowNewBranch = options?.allowNewBranch ?? true
 
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+
         // @TODO: worktree selection strategy should be configurable
-        const worktree = this.worktreeService.useOldestCleanWorktree()
+        const worktree = await this.worktreeService.useOldestCleanWorktree(this.gitRepo.getWorktrees(cwd))
         if (worktree) {
             let isBranchNew = false
             try {
@@ -114,6 +119,70 @@ export class WorktreeController {
         }
 
         return { worktree, isBranchNew }
+    }
+
+    private async getWorktreeChoices(worktrees?: Worktree[]) {
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+        worktrees ??= this.gitRepo.getWorktrees(cwd)
+
+        const sortedWorktrees = await this.worktreeService.sortWorktreesByLastModified(worktrees, 'desc')
+        const worktreesWithIsDirty = await Promise.all(
+            sortedWorktrees.map(async worktree => {
+                const gitStatus = await this.gitRepo.getGitStatusString(worktree.directory)
+                return {
+                    ...worktree,
+                    isDirty: !!gitStatus,
+                }
+            }),
+        )
+
+        return getWorktreeHeaders(worktreesWithIsDirty, true).map(({ worktree, header }) => {
+            return {
+                title: header,
+                value: worktree,
+            } satisfies prompts.Choice
+        })
+    }
+    async selectWorktree(
+        message: string,
+        options?: {
+            worktrees?: Worktree[]
+        },
+    ): Promise<Worktree | null> {
+        const choices = await this.getWorktreeChoices(options?.worktrees)
+        if (!choices.length) return null
+
+        const selectedWorktree = await this.promptController.select({
+            message,
+            choices,
+        })
+
+        if (!selectedWorktree) {
+            Logger.log('No worktree selected')
+            return null
+        }
+        return selectedWorktree
+    }
+    async selectMultipleWorktrees(
+        message: string,
+        options?: {
+            worktrees?: Worktree[]
+        },
+    ): Promise<Worktree[] | null> {
+        const choices = await this.getWorktreeChoices(options?.worktrees)
+        if (!choices.length) return null
+
+        const selectedWorktrees = await this.promptController.selectMultiple({
+            message,
+            choices,
+        })
+
+        if (!selectedWorktrees?.length) {
+            Logger.log('No worktrees selected')
+            return null
+        }
+        return selectedWorktrees
     }
 
     private static instance: WorktreeController

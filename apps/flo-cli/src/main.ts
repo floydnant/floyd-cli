@@ -17,7 +17,7 @@ import { ContextService } from './lib/config/context.service'
 import { Exception } from './lib/errors.utils'
 import { GitController } from './lib/git.controller'
 import { GitService } from './lib/git.service'
-import { Logger } from './lib/logger.service'
+import { Logger, customErrorWriter, fatalPrefix } from './lib/logger.service'
 import { LogLevel } from './lib/logger.types'
 import { OpenController } from './lib/open/open.controller'
 import { OpenService } from './lib/open/open.service'
@@ -29,6 +29,7 @@ const cli = new Command()
 
 cli.version(env.VERSION)
 cli.showSuggestionAfterError(true)
+cli.configureOutput(customErrorWriter)
 
 cli.addCommand(configCommand)
 cli.addCommand(runCommand)
@@ -63,10 +64,9 @@ const main = async () => {
     } catch (e) {
         const error = matchGitError(e) ?? e
 
-        const prefix = 'FATAL:'.bgRed.black
         if (error instanceof Error) {
             Logger.log()
-            Logger.error(prefix, error.message.red)
+            Logger.error(fatalPrefix, error.message.red)
 
             if (error instanceof Exception && error.originalMessage) {
                 Logger.verbose(error.originalMessage.trim())
@@ -78,7 +78,7 @@ const main = async () => {
             process.exit(exitCode)
         }
 
-        Logger.error(prefix, 'Unknown error'.red)
+        Logger.error(fatalPrefix, 'Unknown error'.red)
         Logger.debug(error)
         process.exit(1)
     }

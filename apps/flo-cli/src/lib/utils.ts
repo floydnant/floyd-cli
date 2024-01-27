@@ -13,12 +13,13 @@ export const indent = (str: string, spaces = 4) =>
         .map(line => ' '.repeat(spaces) + line)
         .join('\n')
 
-export const getPaddedStr = (str: string, fillString = '-') => {
-    const DISPLAY_LENGTH = process.stdout.columns
+export const getPaddedStr = (str: string, fillString = '━', displaylength = process.stdout.columns) => {
+    const length = displaylength - str.stripColors.length
 
-    const length = DISPLAY_LENGTH - str.stripColors.length - 1
-    if (length < 1) return ''
-    return str + ' ' + fillString.repeat(length).dim
+    if (length <= 0) return str
+    if (length == 1) return str + ' '.dim
+
+    return str + ' '.dim + fillString.repeat(length - 1).dim
 }
 
 export const getRelativePathOf = (pathString: string, from?: string) => {
@@ -30,7 +31,7 @@ export const getRelativePathOf = (pathString: string, from?: string) => {
     return (isRelativeToHomeDir ? '~/' : '') + relativePath || './'
 }
 
-export const makeArguments = (...argsArr: Record<string, string | number | boolean | undefined | null>[]) => {
+export const makeFlags = (...argsArr: Record<string, string | number | boolean | undefined | null>[]) => {
     const merged = argsArr.map(args => {
         return Object.entries(args)
             .map(([flag, value]) => {
@@ -71,21 +72,31 @@ const quoteMap = {
  */
 export const wrapQuotes = (
     contents: string | undefined | null,
-    quotes: 'single' | 'double' | 'backticks' = 'single',
-) => (contents ? `${quoteMap[quotes]}${contents}${quoteMap[quotes]}` : '')
+    quoteType: 'single' | 'double' | 'backticks' = 'single',
+) => (contents ? `${quoteMap[quoteType]}${contents}${quoteMap[quoteType]}` : '')
 
 export const getCacheKey = (stuff: object | undefined) => JSON.stringify(stuff || {})
 
-// @TODO: this should be called `memoized`
-export const cacheable = <TArgs extends unknown[], TReturn>(callback: (...args: TArgs) => TReturn) => {
+// @TODO: this should be called `memoized` or `memoize`
+export const cacheable = <TArgs extends unknown[], TReturn>(
+    callback: (...args: TArgs) => TReturn,
+    options?: { defaultArgs?: TArgs },
+) => {
     let cache: { [key: string]: TReturn } = {}
     const resetCache = () => {
         cache = {}
     }
 
     const memoizedCallback = (...args: TArgs) => {
-        const cacheKey = getCacheKey(args)
-        if (!(cacheKey in cache)) cache[cacheKey] = callback(...args)
+        // @TODO: what if they mutate the args, then the default args would get mutated too
+        const combinedArgs = Object.assign([], options?.defaultArgs, args) as TArgs
+
+        const cacheKey = getCacheKey(combinedArgs)
+        if (!(cacheKey in cache)) {
+            const result = callback(...combinedArgs)
+            cache[cacheKey] = result
+            return result
+        }
 
         return cache[cacheKey] as TReturn
     }

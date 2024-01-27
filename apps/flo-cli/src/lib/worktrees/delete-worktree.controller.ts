@@ -1,8 +1,8 @@
 import prompts from 'prompts'
 import { GitRepository, getWorktreeFromBranch } from '../../adapters/git'
-import { GitController } from '../git.controller'
 import { Logger } from '../logger.service'
 import { SysCallService } from '../sys-call.service'
+import { WorktreeController } from './worktree.controller'
 import { WorktreeService } from './worktree.service'
 
 export class DeleteWorktreeController {
@@ -10,7 +10,7 @@ export class DeleteWorktreeController {
     constructor(
         private worktreeService: WorktreeService,
         private gitRepo: GitRepository,
-        private gitController: GitController,
+        private worktreeController: WorktreeController,
         private sysCallService: SysCallService,
     ) {}
 
@@ -81,9 +81,10 @@ export class DeleteWorktreeController {
             return
         }
 
-        const selectedTrees = await this.gitController.selectMultipleWorktrees('Select worktrees to remove', {
-            worktrees: removeableWorktrees,
-        })
+        const selectedTrees = await this.worktreeController.selectMultipleWorktrees(
+            'Select worktrees to remove',
+            { worktrees: removeableWorktrees },
+        )
         if (!selectedTrees?.length) return
 
         const { deleteBranch } =

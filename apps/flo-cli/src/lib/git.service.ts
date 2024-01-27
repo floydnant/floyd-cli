@@ -1,3 +1,5 @@
+import path from 'path'
+import { getNextWorktreeName, Worktree } from '../adapters/git'
 import { GitRepository } from '../adapters/git/git.repo'
 import { Logger } from './logger.service'
 
@@ -15,11 +17,14 @@ export class GitService {
     }
 
     private getNextWorktreePath(opts: { folderName?: string; usePrefix?: boolean }) {
-        this.gitRepo.assertIsRepository()
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+
+        this.gitRepo.assertIsRepository(cwd)
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const repoRootDir = this.gitRepo.getRepoRootDir()!
+        const repoRootDir = this.gitRepo.getRepoRootDir(cwd)!
         const repoFolderName = path.basename(repoRootDir)
-        const worktrees = this.gitRepo.getWorktrees()
+        const worktrees = this.gitRepo.getWorktrees(cwd)
 
         const usePrefix = opts.usePrefix ?? true
         const folderPrefix = usePrefix ? repoFolderName + '.' : ''

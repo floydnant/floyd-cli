@@ -1,4 +1,4 @@
-import { GitRepository, Worktree, getBranchWorktreeString, getWorktreeDisplayStr } from '../adapters/git'
+import { GitRepository, getBranchWorktreeString } from '../adapters/git'
 import { GitService } from './git.service'
 import { Logger } from './logger.service'
 import { PromptController } from './prompt.controller'
@@ -71,60 +71,6 @@ export class GitController {
         if (!newBranch) return null
 
         return { branch: newBranch, isNew: true }
-    }
-
-    private getWorktreeChoices(worktrees?: Worktree[]) {
-        // @TODO: pass cwd as an option / get from context
-        const cwd = process.cwd()
-        worktrees ??= this.gitRepo.getWorktrees(cwd)
-
-        return worktrees.map(worktree => {
-            const isDirty = !!this.gitRepo.getGitStatus(worktree.directory)
-            return {
-                title: getWorktreeDisplayStr(worktree, isDirty),
-                value: worktree,
-            }
-        })
-    }
-    async selectWorktree(
-        message: string,
-        options?: {
-            worktrees?: Worktree[]
-        },
-    ): Promise<Worktree | null> {
-        const choices = this.getWorktreeChoices(options?.worktrees)
-        if (!choices.length) return null
-
-        const selectedWorktree = await this.promptController.select({
-            message,
-            choices,
-        })
-
-        if (!selectedWorktree) {
-            Logger.log('No worktree selected')
-            return null
-        }
-        return selectedWorktree
-    }
-    async selectMultipleWorktrees(
-        message: string,
-        options?: {
-            worktrees?: Worktree[]
-        },
-    ): Promise<Worktree[] | null> {
-        const choices = this.getWorktreeChoices(options?.worktrees)
-        if (!choices.length) return null
-
-        const selectedWorktrees = await this.promptController.selectMultiple({
-            message,
-            choices,
-        })
-
-        if (!selectedWorktrees?.length) {
-            Logger.log('No worktrees selected')
-            return null
-        }
-        return selectedWorktrees
     }
 
     private static instance: GitController

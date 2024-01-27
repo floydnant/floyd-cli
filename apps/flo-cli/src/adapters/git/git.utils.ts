@@ -4,25 +4,6 @@ import { Worktree } from './git.model'
 export const fixBranchName = (branch: string) =>
     branch.replace('refs/', '').replace('heads/', '').replace('remotes/', '').replace('origin/', '')
 
-export const getWorktreeDisplayStr = (tree: Worktree, isDirty?: boolean) => {
-    const info = [
-        tree.isCurrent ? 'current'.green : null,
-        isDirty ? 'dirty'.red : null,
-        tree.isLocked ? 'locked'.red : null,
-        tree.isPrunable ? 'prunable'.cyan : null,
-        tree.isMainWorktree ? 'main'.blue : '',
-    ]
-        .filter(Boolean)
-        .join(', ')
-    const checkedOut = tree.isBare
-        ? '[bare]'.yellow
-        : tree.isDetached
-        ? tree.head?.yellow
-        : tree.branch?.yellow
-
-    return `${checkedOut} ${info ? `(${info}) ` : ''}${tree.directory.dim}`
-}
-
 /** Returns a folder name with incremented index (starting at 1) */
 export const getNextWorktreeName = (worktrees: Worktree[]) => {
     const worktreesIndicies = worktrees

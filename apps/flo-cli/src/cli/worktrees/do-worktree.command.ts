@@ -21,9 +21,12 @@ import {
     reuseWindowOption,
     skipHooksOption,
 } from '../shared.options'
+import { GithubRepository } from '../../adapters/github'
+import { customErrorWriter } from '../../lib/logger.service'
 
 export const doCommand = new Command()
     .createCommand('do')
+    .configureOutput(customErrorWriter)
     .description('Decides wether to choose an existing or create a new worktree')
     .argument(
         '<branch-or-pr>',
@@ -57,7 +60,12 @@ export const doCommand = new Command()
             const projectsService = ProjectsService.init(gitRepo, configService)
             const contextService = ContextService.getInstance()
             const workflowService = WorkflowService.init(configService, contextService)
-            const worktreeService = WorktreeService.init(gitRepo, projectsService, workflowService)
+            const worktreeService = WorktreeService.init(
+                gitRepo,
+                projectsService,
+                workflowService,
+                SysCallService.getInstance(),
+            )
             const promptController = PromptController.getInstance()
             const workflowController = WorkflowController.init(
                 workflowService,
@@ -80,6 +88,7 @@ export const doCommand = new Command()
                 gitService,
                 GitController.getInstance(),
                 promptController,
+                GithubRepository.init(SysCallService.getInstance()),
             )
 
             if (!branchOrPr) throw new Error("Value for argument 'branch-or-pr' is empty.")

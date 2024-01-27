@@ -1,13 +1,14 @@
 import { Command } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
-import { Logger } from '../../lib/logger.service'
+import { Logger, customErrorWriter } from '../../lib/logger.service'
 import { ProjectsService } from '../../lib/projects/projects.service'
 
 // @TODO: update this to the controller pattern
 
 export const listCommand = new Command()
     .createCommand('list')
+    .configureOutput(customErrorWriter)
     .alias('ls')
     .description('List projects')
     .action(() => {

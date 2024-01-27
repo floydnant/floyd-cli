@@ -14,9 +14,11 @@ import { SysCallService } from '../../lib/sys-call.service'
 import { WorkflowController } from '../../lib/workflows/workflow.controller'
 import { GithubRepository } from '../../adapters/github'
 import { GitService } from '../../lib/git.service'
+import { customErrorWriter } from '../../lib/logger.service'
 
 export const createWorktreeCommand = new Command()
     .createCommand('create')
+    .configureOutput(customErrorWriter)
     .alias('c')
     .description('Create a worktree with a new or existing branch')
     .argument('[branch]', 'new or existing branch to create the worktree for')
@@ -55,7 +57,7 @@ export const createWorktreeCommand = new Command()
             const contextService = ContextService.getInstance()
             const workflowService = WorkflowService.init(configService, contextService)
             const controller = CreateWorktreeController.init(
-                WorktreeService.init(gitRepo, projectsService, workflowService),
+                WorktreeService.init(gitRepo, projectsService, workflowService, SysCallService.getInstance()),
                 gitRepo,
                 GitService.getInstance(),
                 GitController.getInstance(),

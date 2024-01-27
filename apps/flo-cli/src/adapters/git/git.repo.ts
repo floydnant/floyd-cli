@@ -158,8 +158,25 @@ export class GitRepository {
         }
     }
 
-    getGitStatus = cacheable((directory?: string) => {
-        return this.sysCallService.execPipe('git status --short', { cwd: directory })
+    getGitStatusString = cacheable((directory: string) => {
+        const gitStatus = this.sysCallService.execPipe(
+            'git status --short --untracked-files',
+            { cwd: directory },
+            false,
+        )
+
+        return gitStatus.trimEnd()
+    })
+    getDirtyFiles = cacheable(async (directory: string) => {
+        const gitStatus = await this.getGitStatusString(directory)
+        if (!gitStatus) return []
+
+        const files = gitStatus
+            .replace(/^.{2}/gm, '') // Remove leading file info
+            .split('\n')
+            .map(line => path.join(directory, line.trim().replace(/^"/, '').replace(/"$/, '')))
+
+        return files
     })
 
     getCommitLogs = cacheable((dir?: string, limit?: number) => {
