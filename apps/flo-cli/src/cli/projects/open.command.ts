@@ -1,16 +1,24 @@
 import { createCommand } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { ConfigService } from '../../lib/config/config.service'
-import { GitController } from '../../lib/git.controller'
-import { Logger } from '../../lib/logger.service'
+import { GitService } from '../../lib/git.service'
+import { Logger, customErrorWriter } from '../../lib/logger.service'
 import { OpenController } from '../../lib/open/open.controller'
 import { selectProject } from '../../lib/projects/project.utils'
 import { ProjectsService } from '../../lib/projects/projects.service'
+import { PromptController } from '../../lib/prompt.controller'
+import { WorkflowController } from '../../lib/workflows/workflow.controller'
+import { WorktreeController } from '../../lib/worktrees/worktree.controller'
+import { WorktreeService } from '../../lib/worktrees/worktree.service'
 import { AppOptionArg, ReuseWindowOptionArg, appOption, reuseWindowOption } from '../shared.options'
+import { SysCallService } from '../../lib/sys-call.service'
+import { WorkflowService } from '../../lib/workflows/workflow.service'
+import { ContextService } from '../../lib/config/context.service'
 
 // @TODO: update this to the controller pattern
 
 export const openCommand = createCommand('open')
+    .configureOutput(customErrorWriter)
     .description('Open project')
     .alias('o')
     .addOption(appOption)
@@ -21,7 +29,20 @@ export const openCommand = createCommand('open')
         const gitRepo = GitRepository.getInstance()
         const configService = ConfigService.getInstance()
         const projectsService = ProjectsService.init(gitRepo, configService)
-        const gitController = GitController.getInstance()
+        const workflowService = WorkflowService.init(configService, ContextService.getInstance())
+        const worktreeController = WorktreeController.init(
+            gitRepo,
+            GitService.getInstance(),
+            WorktreeService.init(gitRepo, projectsService, workflowService, SysCallService.getInstance()),
+            WorkflowController.init(
+                workflowService,
+                ContextService.getInstance(),
+                SysCallService.getInstance(),
+                PromptController.getInstance(),
+            ),
+            PromptController.getInstance(),
+        )
+
         const openController = OpenController.getInstance()
 
         const projectMap = configService.config.projects
@@ -40,7 +61,7 @@ export const openCommand = createCommand('open')
             return
         }
 
-        const selectedWorktree = await gitController.selectWorktree('Select a worktree to open', {
+        const selectedWorktree = await worktreeController.selectWorktree('Select a worktree to open', {
             worktrees: selectedProject.worktrees,
         })
         if (!selectedWorktree) return

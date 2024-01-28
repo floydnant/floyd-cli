@@ -19,9 +19,13 @@ import {
     reuseWindowOption,
     waitForCloseOption,
 } from '../shared.options'
+import { WorktreeController } from '../../lib/worktrees/worktree.controller'
+import { GitService } from '../../lib/git.service'
+import { customErrorWriter } from '../../lib/logger.service'
 
 export const switchCommand = new Command()
     .createCommand('switch')
+    .configureOutput(customErrorWriter)
     .alias('sw')
     .description('Switch to another worktree')
     .argument('[branch]', 'the branch to switch the worktree to')
@@ -35,6 +39,7 @@ export const switchCommand = new Command()
                 gitRepo,
                 ProjectsService.init(gitRepo, configService),
                 WorkflowService.init(configService, contextService),
+                SysCallService.getInstance(),
             ),
             gitRepo,
             GitController.getInstance(),
@@ -46,6 +51,13 @@ export const switchCommand = new Command()
                 SysCallService.getInstance(),
                 PromptController.getInstance(),
             ),
+            WorktreeController.init(
+                gitRepo,
+                GitService.getInstance(),
+                WorktreeService.getInstance(),
+                WorkflowController.getInstance(),
+                PromptController.getInstance(),
+            ),
         )
 
         await controller.openWorktree({ branch, subDir, reuseWindow: true })
@@ -53,6 +65,7 @@ export const switchCommand = new Command()
 
 export const openCommand = new Command()
     .createCommand('open')
+    .configureOutput(customErrorWriter)
     .alias('o')
     .description('Open a worktree')
     .argument('[branch]', 'the branch to switch the worktree to')
@@ -73,6 +86,7 @@ export const openCommand = new Command()
                     gitRepo,
                     ProjectsService.init(gitRepo, configService),
                     WorkflowService.init(configService, contextService),
+                    SysCallService.getInstance(),
                 ),
                 gitRepo,
                 GitController.getInstance(),
@@ -82,6 +96,13 @@ export const openCommand = new Command()
                     WorkflowService.getInstance(),
                     ContextService.getInstance(),
                     SysCallService.getInstance(),
+                    PromptController.getInstance(),
+                ),
+                WorktreeController.init(
+                    gitRepo,
+                    GitService.getInstance(),
+                    WorktreeService.getInstance(),
+                    WorkflowController.getInstance(),
                     PromptController.getInstance(),
                 ),
             )

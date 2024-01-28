@@ -15,6 +15,7 @@ A cli for automating and simplifying common tasks such as
 - [Updates](#updates)
 - [Usage](#usage)
 - [Worktrees](#worktrees)
+  - [Just do it](#just-do-it)
   - [Hooks](#hooks)
 - [Configuration](#configuration)
   - [Global configuration](#global-configuration)
@@ -29,6 +30,7 @@ A cli for automating and simplifying common tasks such as
     - [Command Step](#command-step)
     - [Workflow Step](#workflow-step)
     - [Symlink Step - Coming soon!](#symlink-step---coming-soon)
+    - [Open Path Step - Coming soon!](#open-path-step---coming-soon)
     - [NPM Step - Coming soon!](#npm-step---coming-soon)
 - [TODO](#todo)
   - [Docs](#docs)
@@ -51,8 +53,8 @@ npm i
 # Build the CLI
 npm run build
 
-# Make the CLI globally available - may require the good ol' `sudo`
-npm i . -g
+# Make the CLI globally available
+sudo npm i . -g
 ```
 
 > If you make any changes to the source code, just run the npm `build` or `dev` scripts respectively and the updates will be reflected in the bin installation.
@@ -127,9 +129,41 @@ flo tr switch|sw [branch]
 flo tr open|o [branch]
 ```
 
+## Just do it
+
+Now you're a regular worktree user, but find your self waiting a lot for worktrees to be created.
+
+Well what if someone told you, you could save all that setup and just reuse worktrees you're not using at the moment?
+
+That is what the `flo tr do [branchOrPr]` command aims to do. It will select the least recently used worktree (w/ oldest commit and a clean working tree)
+so that it doesn't jank up your work you might still need (like uncommitted changes or recent PRs you wanna get back to). If it cannot find a suitable worktree, it will fall back to creating a new one.
+
+So you just throw a branch, pull request number or even a github link at it, and it just does the most optimal thing for you.
+If there is already a worktree associated it'll just open it directly.
+
+> Hint: you can omit the `do` for a quicker typing experience:
+
+```bash
+flo tr do 53
+flo tr do https://github.com/floydnant/floyd-cli/pull/53
+flo tr do feat/hot-feature # doesn't matter if the branch is available locally or on remote only, it'll fetch for you
+
+flo tr do fix/new-hot-fix # if the branch doesn't exist yet, it'll create it for you
+
+flo tr do 53 -r # use the `-r, --reuse-window` option to reuse an existing instance of your editor
+
+flo tr do
+# @TODO: what should happen if there is no input?
+# 1. Choose an existing worktree to
+#   1.1 Just open
+#   1.2 Checkout a branch
+# 2. Choose or create a branch to `do` a worktree for
+# 3. Just open a free worktree for me without touching it
+```
+
 ## Hooks
 
-Now you've come so far and are a regular worktree user, but you realised that you have to install dependencies and copy environment variables everytime you create a new worktree.
+You've come so far and are an advanced worktree user, but you realised that you have to install dependencies and copy environment variables everytime you create a new worktree.
 
 Well, we've got you covered here too.
 
@@ -140,7 +174,14 @@ There will be a setup wizard for this in the future, but until then you gotta do
 3. In there, add a key called `worktreeHooks`
 4. Now choose the desired hook and map your `workflowId` to it
 
-(Available hook types include: `onCreate`, `onSwitch`, more coming soon)
+(Available hook types include: `onCreate`, `onCheckout`, `beforeOpen`, and more to come)
+
+Depending on your setup, preparing a worktree can vary. But typically you would copy or symlink `.env` files and build artifcats and install dependencies.
+
+> Pro tip: copy your dependencies first instead of installing them all from scratch, e.g.
+> ```bash
+> cp $repoRoot/node_modules $newWorktreeRoot/node_modules
+> ```
 
 # Configuration
 
@@ -148,9 +189,7 @@ There will be a setup wizard for this in the future, but until then you gotta do
 # Print the resolved configuration
 flo config
 
-# Edit the global configuration file in vim or vscode.
-# There is no flag yet, it just chooses, in case you get vim,
-# type `:q!` to exit without saving, or `:qw` to exit with saving.
+# Edit the global configuration file in your preferred editor
 flo config edit
 ```
 
@@ -194,7 +233,7 @@ Or let them run automatically with [worktree hooks](#hooks).
 {
     // A string without spaces, you're calling the workflow with (or for
     // referencing in other places of the config like worktree hooks)
-    "workflowId": "<id>",
+    "workflowId": "<workflowId>",
 
     // An optional name and description of the workflow
     "name": "[name]",
@@ -272,6 +311,10 @@ Only supports files for now.
 
 Symlink directories or files instead of copying them
 
+### Open Path Step - Coming soon!
+
+Open files, folders or urls with an app picker.
+
 ### NPM Step - Coming soon!
 
 Manipulate the `package.json`:
@@ -296,8 +339,8 @@ Manipulate the `package.json`:
 
 ## Internal
 
--   [ ] Refactor stuff to singleton classes
-    -   [ ] `git.repo`
+-   [ ] Refactor everything to singleton classes
+-   [ ] Refactor custom singleton logic to DI library: https://github.com/microsoft/tsyringe
 
 ## Rough ideas
 
@@ -307,7 +350,7 @@ Manipulate the `package.json`:
     -   Project root path defined in the global config
     -   `flo project|p open|o [projectId]` - `if (project has more than one worktree)` summons a prompt to open a worktree from that project; `else` open the default worktree
 -   [ ] Playgrounds -> take inspration from joshua morony's playground script
--   [ ] Predefined workflows (scaffolders)
+-   [ ] Predefined workflows (scaffolders) -> consider doing that with `@nx/devkit`
     -   [ ] Prettier
     -   [ ] Typescript
     -   [ ] eslint

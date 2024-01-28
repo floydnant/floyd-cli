@@ -3,7 +3,8 @@ import { Logger } from '../logger.service'
 import { Project } from './projects.schemas'
 
 export const getProjectDisplayStr = (project: Omit<Project, 'worktrees'>, withArrow = false) => {
-    const prefix = project.isCurrent ? ' -> ' : '    '
+    const prefix = '    ' // project.isCurrent ? ' -> ' : '    '
+
     return `${withArrow ? prefix : ''}${project.projectId.blue} ${project.projectConfig.root.grey}${
         project.isCurrent ? ' (current)'.green : ''
     }`

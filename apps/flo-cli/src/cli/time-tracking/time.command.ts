@@ -2,6 +2,7 @@ import { Command } from 'commander'
 import { parseDate, getWeekRangeOf } from '@flo/common'
 import { VerboseOption } from '../../lib/interfaces'
 import { printTimeTrackingBalance } from './lib/balance'
+import { customErrorWriter } from '../../lib/logger.service'
 
 interface Options extends VerboseOption {
     startDate?: string
@@ -18,6 +19,7 @@ const weekCommand = new Command()
 
 export const timeCommand = new Command()
     .createCommand('time')
+    .configureOutput(customErrorWriter)
     .description('Prints the balance of time goal and tracked time between two dates')
     .option(
         '-s, --startDate <date>',

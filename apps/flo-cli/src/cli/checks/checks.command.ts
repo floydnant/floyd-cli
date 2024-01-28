@@ -3,6 +3,7 @@ import { GithubRepository, PullRequestWithChecks, filterFailedChecks } from '../
 import { SysCallService } from '../../lib/sys-call.service'
 import { printChecks } from './lib/print-checks'
 import { rerunChecks } from './lib/rerun-checks'
+import { customErrorWriter } from '../../lib/logger.service'
 
 // @TODO: migrate this to the controller pattern
 const checksHandler = (
@@ -27,6 +28,7 @@ const checksHandler = (
 
 export const checksCommand = new Command()
     .createCommand('checks')
+    .configureOutput(customErrorWriter)
     .aliases(['ch', 'check'])
     .description('Show checks for the current PR')
     .argument('[prNumberOrBranch]', 'PR number or branch name')

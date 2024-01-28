@@ -2,7 +2,7 @@ import { SysCallService } from '../sys-call.service'
 import { Logger } from '../logger.service'
 import { OpenPort, OpenType } from './open.types'
 import { ReuseWindowOptionArg, WaitForCloseOptionArg } from '../../cli/shared.options'
-import { getFlags } from '../utils'
+import { makeFlags } from '../utils'
 
 export class OpenVscodeService implements OpenPort {
     constructor(private sysCallService: SysCallService) {}
@@ -34,7 +34,7 @@ export class OpenVscodeService implements OpenPort {
                 )
 
                 this.sysCallService.execInherit(
-                    `code ${getFlags({
+                    `code ${makeFlags({
                         '--reuse-window': options?.reuseWindow,
                         '--wait': options?.waitForClose,
                     })} ${directory}`,

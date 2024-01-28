@@ -2,7 +2,7 @@ import path from 'path'
 import { fixBranchName } from './git.utils'
 import { Worktree } from './git.model'
 import { Logger } from '../../lib/logger.service'
-import { cacheable, isSubDir } from '../../lib/utils'
+import { cacheable, isSubDir, wrapQuotes } from '../../lib/utils'
 import { SysCallService } from '../../lib/sys-call.service'
 import { NotAGitRepositoryException, transformGitErrors } from './git.errors'
 
@@ -158,13 +158,39 @@ export class GitRepository {
         }
     }
 
-    getGitStatus = cacheable((directory?: string) => {
-        return this.sysCallService.execPipe('git status --short', { cwd: directory })
+    getGitStatusString = cacheable((directory: string) => {
+        const gitStatus = this.sysCallService.execPipe(
+            'git status --short --untracked-files',
+            { cwd: directory },
+            false,
+        )
+
+        return gitStatus.trimEnd()
+    })
+    getDirtyFiles = cacheable(async (directory: string) => {
+        const gitStatus = await this.getGitStatusString(directory)
+        if (!gitStatus) return []
+
+        const files = gitStatus
+            .replace(/^.{2}/gm, '') // Remove leading file info
+            .split('\n')
+            .map(line => path.join(directory, line.trim().replace(/^"/, '').replace(/"$/, '')))
+
+        return files
     })
 
     getCommitLogs = cacheable((dir?: string, limit?: number) => {
         const cmd = `git log --oneline --graph --decorate --color ${limit ? '-n ' + limit : ''}`
         return this.sysCallService.exec(cmd, { cwd: dir })
+    })
+
+    getHeadHash = cacheable((dir?: string) => {
+        return this.sysCallService.execPipe('git rev-parse HEAD', { cwd: dir })
+    })
+
+    getDateOfRef = cacheable((ref: string, dir?: string) => {
+        const output = this.sysCallService.execPipe(`git show --no-patch --format=%ci '${ref}'`, { cwd: dir })
+        return new Date(output)
     })
 
     getRemoteOf(branch: string) {
@@ -176,11 +202,10 @@ export class GitRepository {
     }
 
     // @TODO: remove logging
-    /** `git branch <branchName>` */
-    createBranch(branchName: string, message: string | null = `Creating branch ${branchName.green}...`.dim) {
+    /** `git branch <branchName> [baseBranch]` */
+    createBranch(branch: string, baseBranch?: string, options?: { cwd?: string }) {
         return transformGitErrors(() => {
-            if (message !== null) Logger.getInstance().log(message)
-            return this.sysCallService.execInherit(`git branch ${branchName}`)
+            return this.sysCallService.execPipe(`git branch '${branch}' ${wrapQuotes(baseBranch)}`, options)
         })
     }
 
@@ -206,10 +231,10 @@ export class GitRepository {
         const upstreamText = upstream ? ' from ' + upstream.magenta : ''
         return transformGitErrors(() => {
             try {
-                Logger.getInstance().verbose(`\nPulling${upstreamText}...`.dim)
+                Logger.verbose(`\nPulling${upstreamText}...`.dim)
                 this.sysCallService.execInherit(`git pull ${upstream || ''}`, { cwd: workingDir })
             } catch {
-                Logger.getInstance().error(`Failed to pull${upstreamText}`.red)
+                Logger.error(`Failed to pull${upstreamText}`.red)
             }
         })
     }

@@ -39,6 +39,8 @@ export class WorkflowController {
         const workflowName = workflow.name
         const logger = Logger.getInstance()
 
+        logger.log(getPaddedStr(indent(workflowName, workflow.nestingLevel * 4), '-'.blue))
+
         let steps = workflow.steps
 
         if ((opts.confirm || workflow.confirm) && !opts.yes) {
@@ -53,8 +55,6 @@ export class WorkflowController {
             }
             steps = filteredSteps
         }
-
-        logger.log(getPaddedStr(indent(workflowName, workflow.nestingLevel * 4), '-'.blue))
 
         for (const step of steps) {
             const logStep = () => printStep(step, workflow.nestingLevel, logger.verbose, false)

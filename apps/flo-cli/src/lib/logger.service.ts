@@ -1,5 +1,6 @@
 import { DEFAULT_LOG_LEVEL } from './config/config.vars'
 import { LogLevel } from './logger.types'
+import 'colors'
 
 export class Logger {
     private static logLevel = DEFAULT_LOG_LEVEL
@@ -30,7 +31,7 @@ export class Logger {
         if ([LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG, LogLevel.WARN].includes(Logger.logLevel))
             console.warn(message.yellow, ...args)
         return Logger
-    }).bind(Logger) as (...agrs: unknown[]) => typeof Logger
+    }).bind(Logger) as (message: string, ...agrs: unknown[]) => typeof Logger
 
     static log = ((...args: unknown[]) => {
         if ([LogLevel.DEBUG, LogLevel.VERBOSE, LogLevel.LOG].includes(Logger.logLevel)) console.log(...args)
@@ -47,8 +48,21 @@ export class Logger {
 
         const messageResult = typeof message === 'function' ? message() : message
         const messageAndMore = Array.isArray(messageResult) ? messageResult : [messageResult]
-        console.debug('DEBUG:'.bgYellow.black, ...messageAndMore, ...args)
+        console.debug('DEBUG'.bgYellow.black, ...messageAndMore, ...args)
 
         return Logger
     }).bind(Logger) as (...agrs: unknown[]) => typeof Logger
+}
+
+export const fatalPrefix = 'FATAL:'.bgRed.black
+
+export const customErrorWriter = {
+    writeErr: (str: string) => {
+        if (str.startsWith('error:')) {
+            Logger.error(fatalPrefix + str.replace('error:', '').trimEnd().red)
+            return
+        }
+
+        Logger.log(str)
+    },
 }

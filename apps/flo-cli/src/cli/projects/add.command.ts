@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { GitRepository } from '../../adapters/git'
 import { PROJECTS_CONFIG_KEY } from '../../lib/config/config.schemas'
 import { ConfigService } from '../../lib/config/config.service'
-import { Logger } from '../../lib/logger.service'
+import { Logger, customErrorWriter } from '../../lib/logger.service'
 import { ProjectsService } from '../../lib/projects/projects.service'
 import { indent } from '../../lib/utils'
 
@@ -10,6 +10,7 @@ import { indent } from '../../lib/utils'
 
 export const addCommand = new Command()
     .createCommand('add')
+    .configureOutput(customErrorWriter)
     .description('Add project')
     .argument('[path]', 'Path to the project', '<cwd>')
     .action((options: { path?: string }) => {

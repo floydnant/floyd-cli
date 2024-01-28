@@ -5,6 +5,7 @@ import { ConfigService } from './config.service'
 import { globalPaths } from './config.vars'
 import { ContextService } from './context.service'
 import { AppOptionArg, WaitForCloseOptionArg } from '../../cli/shared.options'
+import { highlightBasename } from '../formatting.utils'
 
 export class ConfigController {
     /** Do not use this constructor directly, use `.init()` instead */
@@ -29,7 +30,7 @@ export class ConfigController {
             `Note: interpolation strategy ${InterpolationStrategy.Javascript} is not applied when using this command`,
         )
         Logger.log()
-        Logger.log(globalPaths.configFile.yellow, config)
+        Logger.log(highlightBasename(globalPaths.configFile), config)
     }
 
     private static instance: ConfigController

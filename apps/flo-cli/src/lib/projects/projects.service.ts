@@ -1,11 +1,12 @@
 import path from 'path'
-import { GitRepository, getWorktreeDisplayStr } from '../../adapters/git'
+import { GitRepository } from '../../adapters/git'
 import { PROJECTS_CONFIG_KEY, ProjectConfig } from '../config/config.schemas'
 import { Logger } from '../logger.service'
 import { getPaddedStr, indent } from '../utils'
 import { getProjectDisplayStr } from './project.utils'
 import { Project } from './projects.schemas'
 import { ConfigService } from '../config/config.service'
+import { getWorktreeHeaders } from '../worktree.formatting'
 
 export class ProjectsService {
     /** Do not use this constructor directly, use `ProjectsService.init()` instead */
@@ -37,18 +38,21 @@ export class ProjectsService {
                 { projectId, projectConfig: projects[projectId]!, isCurrent },
                 true,
             )
+
             const worktrees = this.gitRepo.getWorktrees(projectRoot)
-            const worktreeNames = worktrees
-                .map(
-                    tree =>
-                        (tree.isCurrent ? ' -> ' : '    ') +
-                        getWorktreeDisplayStr(tree, !!this.gitRepo.getGitStatus(tree.directory)),
-                )
+            const worktreeHeaders = getWorktreeHeaders(
+                worktrees.map(wt => ({
+                    ...wt,
+                    isDirty: !!this.gitRepo.getGitStatusString(wt.directory),
+                })),
+                true,
+            )
+                .map(({ header, worktree }) => (worktree.isCurrent ? ' -> ' : '    ') + header)
                 .join('\n')
 
             Logger.log()
             Logger.log(getPaddedStr(projectDisplayStr))
-            Logger.log(indent(worktreeNames, 4))
+            Logger.log(indent(worktreeHeaders, 4))
             Logger.log()
         }
     }

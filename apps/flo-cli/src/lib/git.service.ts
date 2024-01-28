@@ -1,3 +1,5 @@
+import path from 'path'
+import { getNextWorktreeName, Worktree } from '../adapters/git'
 import { GitRepository } from '../adapters/git/git.repo'
 import { Logger } from './logger.service'
 
@@ -5,9 +7,54 @@ export class GitService {
     /** Do not use this constructor directly, use `.init()` instead */
     constructor(private gitRepo: GitRepository) {}
 
-    createBranch(branch: string, message: string | false = `Creating branch ${branch.yellow}...`.dim) {
-        if (message !== false) Logger.log(message)
-        return this.gitRepo.createBranch(branch, null)
+    createBranch(branch: string, baseBranch?: string, options?: { logMessage?: boolean; cwd?: string }) {
+        if (options?.logMessage !== false)
+            Logger.log(
+                `Creating branch ${branch.yellow}${baseBranch ? ` off of ${baseBranch.yellow}` : ''}...`,
+            )
+
+        return this.gitRepo.createBranch(branch, baseBranch, options)
+    }
+
+    private getNextWorktreePath(opts: { folderName?: string; usePrefix?: boolean }) {
+        // @TODO: pass cwd as an option / get from context
+        const cwd = process.cwd()
+
+        this.gitRepo.assertIsRepository(cwd)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const repoRootDir = this.gitRepo.getRepoRootDir(cwd)!
+        const repoFolderName = path.basename(repoRootDir)
+        const worktrees = this.gitRepo.getWorktrees(cwd)
+
+        const usePrefix = opts.usePrefix ?? true
+        const folderPrefix = usePrefix ? repoFolderName + '.' : ''
+        const folderName = `${folderPrefix}${
+            opts.folderName ? opts.folderName?.replace(/\//g, '-') : getNextWorktreeName(worktrees)
+        }`
+        const directory = path.join(repoRootDir, '../', repoFolderName + '.worktrees/', folderName)
+
+        return { directory, folderName }
+    }
+
+    createWorktree(opts: {
+        usePrefix?: boolean
+        folderName?: string
+        /** If a directory is given, `worktreeName` and `worktreePrefix` are ignored. */
+        directory?: string
+        branch: string
+    }): Worktree {
+        const branch = opts.branch
+        const directory = opts.directory || this.getNextWorktreePath(opts).directory
+
+        this.gitRepo.addWorktree(directory, branch)
+        Logger.log(`Created new worktree in ${directory.green} with ${branch.yellow}`)
+
+        return {
+            branch,
+            directory,
+            isMainWorktree: false,
+            isCurrent: false,
+        }
     }
 
     private static instance: GitService

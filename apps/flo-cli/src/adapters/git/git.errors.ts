@@ -1,5 +1,6 @@
 import { CustomExceptionConstructor, Exception, matchError } from '../../lib/errors.utils'
 import { Logger } from '../../lib/logger.service'
+import { red } from '../../lib/utils'
 
 export enum GitExceptionCode {
     /**
@@ -25,6 +26,30 @@ export enum GitExceptionCode {
      * ```
      */
     PATHSPEC_DID_NOT_MATCH_ANY_FILES = 'error: pathspec did not match any file(s) known to git',
+
+    /**
+     * This happens when trying to branch off of a branch that doesn't exist
+     *
+     * ```sh
+     * git branch new-branch non-existent-branch
+     * ```
+     * ```txt
+     * fatal: not a valid object name: 'non-existent-branch'
+     * ```
+     */
+    NOT_A_VALID_OBJECT_NAME = "fatal: not a valid object name: 'non-existent-branch'",
+
+    /**
+     * This happens when trying to checkout a new branch while branching off of a branch that doesn't exist
+     *
+     * ```sh
+     * git checkout -b new-branch non-existent
+     * ```
+     * ```txt
+     * fatal: 'non-existent' is not a commit and a branch 'new-branch' cannot be created from it
+     * ```
+     */
+    NOT_A_COMMIT_AND_BRANCH_CANNOT_BE_CREATED_FROM_IT = "fatal: 'non-existent' is not a commit and a branch 'new-branch' cannot be created from it",
 
     /**
      * This happens when trying to run a git command outside of a git repository
@@ -72,7 +97,7 @@ export class InvalidReferenceException extends Exception {
     }
 
     constructor(originalMessage: string, branch = '???') {
-        super(originalMessage, `Branch/Ref ${branch.yellow} does not exist`)
+        super(originalMessage, red`Branch/Ref ${branch.yellow} does not exist`)
     }
 }
 
@@ -100,7 +125,73 @@ export class PathspecDidNotMatchFilesException extends Exception {
     }
 
     constructor(originalMessage: string, branch = '???') {
-        super(originalMessage, `Branch/Ref ${branch.yellow} does not exist`)
+        super(originalMessage, red`Branch/Ref ${branch.yellow} does not exist`)
+    }
+}
+
+/**
+ * This happens when trying to branch off of a branch that doesn't exist
+ *
+ * ```sh
+ * git branch new-branch non-existent-branch
+ * ```
+ * ```txt
+ * fatal: not a valid object name: 'non-existent-branch'
+ * ```
+ */
+export class NotAValidObjectNameException extends Exception {
+    static regex = /fatal: not a valid object name: '(?<branch>.+)'/
+    class = NotAValidObjectNameException
+    code = GitExceptionCode.NOT_A_VALID_OBJECT_NAME
+
+    static fromError(error: unknown): NotAValidObjectNameException | null {
+        const match = matchError(error, this.regex)
+        if (match.isMatch)
+            return new NotAValidObjectNameException(match.originalMessage, match.groups['branch'])
+
+        return null
+    }
+
+    constructor(originalMessage: string, branch = '???') {
+        super(
+            originalMessage,
+            red`Cannot branch off of '${branch.yellow}', branch/ref '${branch.yellow}' does not exist`,
+        )
+    }
+}
+
+/**
+ * This happens when trying to checkout a new branch while branching off of a branch that doesn't exist
+ *
+ * ```sh
+ * git checkout -b new-branch non-existent
+ * ```
+ * ```txt
+ * fatal: 'non-existent' is not a commit and a branch 'new-branch' cannot be created from it
+ * ```
+ */
+export class NotACommitAndBranchCannotBeCreatedException extends Exception {
+    static regex =
+        /fatal: '(?<branch>.+)' is not a commit and a branch '(?<newBranch>.+)' cannot be created from it/
+    class = NotACommitAndBranchCannotBeCreatedException
+    code = GitExceptionCode.NOT_A_COMMIT_AND_BRANCH_CANNOT_BE_CREATED_FROM_IT
+
+    static fromError(error: unknown): NotACommitAndBranchCannotBeCreatedException | null {
+        const match = matchError(error, this.regex)
+        if (match.isMatch)
+            return new NotACommitAndBranchCannotBeCreatedException(
+                match.originalMessage,
+                match.groups['branch'],
+            )
+
+        return null
+    }
+
+    constructor(originalMessage: string, branch = '???') {
+        super(
+            originalMessage,
+            red`Cannot branch off of '${branch.yellow}', branch/ref '${branch.yellow}' does not exist`,
+        )
     }
 }
 
@@ -129,7 +220,7 @@ export class NotAGitRepositoryException extends Exception {
     constructor() {
         super(
             'fatal: not a git repository (or any of the parent directories): .git',
-            'Not in a git repository',
+            red`Not in a git repository`,
         )
     }
 }
@@ -156,7 +247,7 @@ export class NotAValidBranchNameException extends Exception {
     }
 
     constructor(originalMessage: string, branch = '???') {
-        super(originalMessage, `'${branch.yellow}' is not a valid branch name`)
+        super(originalMessage, red`'${branch.yellow}' is not a valid branch name`)
     }
 }
 
@@ -165,6 +256,9 @@ const gitExceptionMap = {
     [GitExceptionCode.PATHSPEC_DID_NOT_MATCH_ANY_FILES]: PathspecDidNotMatchFilesException,
     [GitExceptionCode.INVALID_REFERENCE]: InvalidReferenceException,
     [GitExceptionCode.NOT_A_VALID_BRANCH_NAME]: NotAValidBranchNameException,
+    [GitExceptionCode.NOT_A_VALID_OBJECT_NAME]: NotAValidObjectNameException,
+    [GitExceptionCode.NOT_A_COMMIT_AND_BRANCH_CANNOT_BE_CREATED_FROM_IT]:
+        NotACommitAndBranchCannotBeCreatedException,
 } satisfies Record<GitExceptionCode, CustomExceptionConstructor>
 const gitExceptions = Object.values(gitExceptionMap)
 
@@ -178,7 +272,7 @@ export const matchGitError = (error: unknown): GitException | null => {
         const exception = constructor.fromError(error)
 
         if (exception) {
-            Logger.debug(`Matched ${constructor.name.bold} from error: ${String(error).red}`)
+            Logger.debug(`Matched ${constructor.name.bold} from error: ${String(error).red.dim}`)
             return exception
         }
     }

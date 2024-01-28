@@ -7,6 +7,7 @@ import { WorkflowController } from '../workflows/workflow.controller'
 import { WorktreeHook } from './worktree-config.schemas'
 import { WorktreeService } from './worktree.service'
 import { AppOptionArg, ReuseWindowOptionArg, WaitForCloseOptionArg } from '../../cli/shared.options'
+import { WorktreeController } from './worktree.controller'
 import { Logger } from '../logger.service'
 
 export class OpenWorktreeController {
@@ -18,6 +19,7 @@ export class OpenWorktreeController {
         private contextService: ContextService,
         private openController: OpenController,
         private workflowController: WorkflowController,
+        private worktreeController: WorktreeController,
     ) {}
 
     // @TODO: @floydnant we should be able to checkout a new branch/PR from here with a --checkout <branchOrPrNumber> flag
@@ -57,7 +59,7 @@ export class OpenWorktreeController {
             return
         }
 
-        const worktree = await this.gitController.selectWorktree('Select a worktree to open')
+        const worktree = await this.worktreeController.selectWorktree('Select a worktree to open')
         if (!worktree) return
 
         if (workflow) {
