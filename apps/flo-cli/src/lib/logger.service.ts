@@ -1,5 +1,6 @@
 import { DEFAULT_LOG_LEVEL } from './config/config.vars'
 import { LogLevel } from './logger.types'
+import 'colors'
 
 export class Logger {
     private static logLevel = DEFAULT_LOG_LEVEL
